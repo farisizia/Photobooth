@@ -46,7 +46,7 @@ export function PreviewSection() {
               <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-3">
                 <span className="text-[11px] sm:text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  SNAPMOMENT LIVE
+                  IZIAPHOTO LIVE
                 </span>
                 <span className="text-[10px] sm:text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
                   PHOTO 2 / 4
@@ -76,12 +76,12 @@ export function PreviewSection() {
                 {/* Floating Strip Preview on Side */}
                 <div className="absolute right-2.5 bottom-2.5 w-14 sm:w-16 bg-white p-1 rounded-lg shadow-lg rotate-2 scale-90 border border-slate-200">
                   <div className="space-y-1">
-                    <div className="h-3.5 sm:h-4 bg-rose-200 rounded-sm" />
-                    <div className="h-3.5 sm:h-4 bg-purple-200 rounded-sm" />
-                    <div className="h-3.5 sm:h-4 bg-amber-200 rounded-sm" />
-                    <div className="h-3.5 sm:h-4 bg-sky-200 rounded-sm" />
+                    <img src="/mockups/korean_pose_1.jpg" alt="Pose 1" className="h-4 w-full object-cover object-center rounded-xs" />
+                    <img src="/mockups/korean_pose_2.jpg" alt="Pose 2" className="h-4 w-full object-cover object-center rounded-xs" />
+                    <img src="/mockups/korean_pose_3.jpg" alt="Pose 3" className="h-4 w-full object-cover object-center rounded-xs" />
+                    <img src="/mockups/korean_pose_4.jpg" alt="Pose 4" className="h-4 w-full object-cover object-center rounded-xs" />
                   </div>
-                  <div className="text-[5px] text-center font-bold text-slate-800 mt-1">SNAPMOMENT</div>
+                  <div className="text-[5px] text-center font-bold text-slate-800 mt-1">IZIAPHOTO</div>
                 </div>
               </div>
 

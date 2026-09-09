@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'snapmoment_session_photos';
+const STORAGE_KEY = 'iziaphoto_session_photos';
+const OLD_STORAGE_KEY = 'snapmoment_session_photos';
 
 export function saveCapturedPhotos(photos: string[]): void {
   try {
@@ -10,7 +11,7 @@ export function saveCapturedPhotos(photos: string[]): void {
 
 export function getCapturedPhotos(): string[] {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(OLD_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];

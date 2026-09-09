@@ -356,7 +356,7 @@ export async function renderPhotoboothCanvas(
 
     ctx.font = '11px/15px serif';
     const article2 =
-      'Social commentators emphasize that heartfelt connections remain our most valuable heirloom. The historic portraits displayed above serve as an everlasting testament that authentic joy never fades. Published exclusively by SnapMoment.';
+      'Social commentators emphasize that heartfelt connections remain our most valuable heirloom. The historic portraits displayed above serve as an everlasting testament that authentic joy never fades. Published exclusively by IziaPhoto.';
     drawWrappedText(ctx, article2, dividerX + 18, colStartY + 38, colWidth, 15);
 
     // Footer
@@ -517,7 +517,7 @@ export async function renderPhotoboothCanvas(
     ctx.textAlign = 'center';
     ctx.font = 'bold 20px "Space Grotesk", sans-serif';
     ctx.letterSpacing = '5px';
-    ctx.fillText('✦ 인생네컷 • SNAPMOMENT ✦', width / 2, headerHeight / 2 + 8);
+    ctx.fillText('✦ 인생네컷 • IZIAPHOTO ✦', width / 2, headerHeight / 2 + 8);
 
     // Photos
     images.forEach((img, i) => {
@@ -610,7 +610,7 @@ export async function renderPhotoboothCanvas(
     ctx.fillStyle = '#EF4444'; // Red negative stamp
     ctx.font = 'bold 13px "Space Grotesk", monospace';
     ctx.letterSpacing = '4px';
-    ctx.fillText(`SNAPMOMENT FILM LAB • ${dateStr} • ISO 400`, width / 2, footerY);
+    ctx.fillText(`IZIAPHOTO FILM LAB • ${dateStr} • ISO 400`, width / 2, footerY);
   }
 
   // =========================================================================
@@ -727,7 +727,7 @@ export async function renderPhotoboothCanvas(
     ctx.textAlign = 'center';
     ctx.font = 'bold 22px "Space Grotesk", monospace';
     ctx.letterSpacing = '2px';
-    ctx.fillText('*** SNAPMOMENT MART & CAFE ***', width / 2, 55);
+    ctx.fillText('*** IZIAPHOTO MART & CAFE ***', width / 2, 55);
 
     ctx.font = '500 12px monospace';
     ctx.fillText('STORE #2026 • DIGITAL PHOTOBOOTH MEMORIES', width / 2, 78);
@@ -790,7 +790,7 @@ export async function renderPhotoboothCanvas(
     ctx.fillText('||| 2026 0909 8849 |||', width / 2, barcodeY + 48);
 
     ctx.font = 'italic 12px monospace';
-    ctx.fillText('*** THANK YOU FOR VISITING SNAPMOMENT ***', width / 2, barcodeY + 70);
+    ctx.fillText('*** THANK YOU FOR VISITING IZIAPHOTO ***', width / 2, barcodeY + 70);
   }
 
   return canvas;
@@ -799,7 +799,7 @@ export async function renderPhotoboothCanvas(
 /**
  * Download canvas directly as PNG
  */
-export function downloadCanvas(canvas: HTMLCanvasElement, filename = 'snapmoment-photobooth.png') {
+export function downloadCanvas(canvas: HTMLCanvasElement, filename = 'iziaphoto-photobooth.png') {
   const link = document.createElement('a');
   link.download = filename;
   link.href = canvas.toDataURL('image/png', 1.0);

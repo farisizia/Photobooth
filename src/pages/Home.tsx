@@ -1,8 +1,11 @@
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
 import { Features } from '../components/Features';
+import { TemplateShowcase } from '../components/TemplateShowcase';
 import { HowItWorks } from '../components/HowItWorks';
+import { EmotionalSection } from '../components/EmotionalSection';
 import { PreviewSection } from '../components/PreviewSection';
+import { PrivacySection } from '../components/PrivacySection';
 import { CTA } from '../components/CTA';
 import { Footer } from '../components/Footer';
 
@@ -21,8 +24,11 @@ export function HomePage() {
       <main className="flex-1 relative z-10">
         <Hero />
         <Features />
+        <TemplateShowcase />
         <HowItWorks />
+        <EmotionalSection />
         <PreviewSection />
+        <PrivacySection />
         <CTA />
       </main>
 

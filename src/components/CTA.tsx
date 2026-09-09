@@ -11,20 +11,27 @@ export function CTA() {
 
           <div className="relative z-10 max-w-2xl mx-auto">
             <span className="text-4xl mb-3 inline-block">✨</span>
-            <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-white tracking-tight leading-tight mb-4">
-              Ready to Capture Your Moment?
+            <h2 className="text-3xl sm:text-5xl font-display font-black text-white tracking-tight leading-tight mb-4">
+              Udah Siap Foto? <span className="inline-block whitespace-nowrap">👀📸</span>
             </h2>
             <p className="text-rose-100 text-base sm:text-lg mb-8 max-w-lg mx-auto font-medium leading-relaxed">
-              Mulai photobooth sekarang dan abadikan momen berhargamu bersama teman & pasangan tanpa ribet.
+              Nggak perlu ke photobooth. <br className="hidden sm:inline" />
+              Nggak perlu install aplikasi. <br className="hidden sm:inline" />
+              Tinggal buka dan mulai foto.
             </p>
 
-            <Link
-              to="/templates"
-              className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl text-lg font-bold text-rose-600 bg-white hover:bg-rose-50 shadow-xl shadow-rose-900/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              <span className="text-2xl">📸</span>
-              <span>Pilih Template & Mulai</span>
-            </Link>
+            <div className="mb-4">
+              <Link
+                to="/templates"
+                className="inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl text-lg sm:text-xl font-black text-rose-600 bg-white hover:bg-rose-50 shadow-2xl shadow-rose-950/20 hover:scale-105 active:scale-95 transition-all"
+              >
+                <span>📸 Mulai Photobooth Gratis</span>
+              </Link>
+            </div>
+
+            <p className="text-xs sm:text-sm font-semibold text-rose-100/90 tracking-wide">
+              Gratis • Browser-based • No app needed
+            </p>
           </div>
         </div>
       </div>

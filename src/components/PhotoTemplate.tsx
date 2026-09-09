@@ -46,7 +46,7 @@ export function PhotoTemplate({ photos, template, onRetake }: PhotoTemplateProps
 
   const handleDownload = () => {
     if (activeCanvasRef.current) {
-      downloadCanvas(activeCanvasRef.current, `snapmoment-${template.id}.png`);
+      downloadCanvas(activeCanvasRef.current, `iziaphoto-${template.id}.png`);
     }
   };
 

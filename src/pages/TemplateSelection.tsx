@@ -38,7 +38,7 @@ export function TemplateSelectionPage() {
 
         <div className="text-center">
           <span className="font-display font-bold text-base tracking-wider text-white">
-            SNAPMOMENT
+            IZIAPHOTO
           </span>
           <span className="block text-[9px] font-semibold text-coral-400 tracking-widest uppercase">
             {hasPhotos ? 'GANTI TEMPLATE VIRAL' : 'PRESET TEMPLATE VIRAL'}
@@ -208,7 +208,7 @@ export function TemplateSelectionPage() {
                   {template.category === 'korean' && (
                     <div className="h-full flex flex-col justify-between text-black p-1">
                       <div className="text-center text-[8px] font-bold tracking-widest">
-                        ✦ 인생네컷 • SNAPMOMENT ✦
+                        ✦ 인생네컷 • IZIAPHOTO ✦
                       </div>
                       <div className="flex-1 my-1.5 flex flex-col gap-1 justify-center">
                         {Array.from({ length: template.slots }).map((_, i) => (
@@ -289,7 +289,7 @@ export function TemplateSelectionPage() {
                   {template.category === 'receipt' && (
                     <div className="h-full flex flex-col justify-between text-zinc-900 font-mono p-1 border-x border-dashed border-zinc-400">
                       <div className="text-center border-b border-dashed border-zinc-400 pb-1">
-                        <span className="text-[7px] font-bold block">*** SNAPMOMENT MART ***</span>
+                        <span className="text-[7px] font-bold block">*** IZIAPHOTO MART ***</span>
                         <span className="text-[6px] block">RECEIPT #2026 • 14:45</span>
                       </div>
                       <div className="flex-1 my-1 flex flex-col gap-1 justify-center">
