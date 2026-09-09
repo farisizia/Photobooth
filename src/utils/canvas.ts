@@ -276,9 +276,66 @@ export async function renderPhotoboothCanvas(
   }).toUpperCase();
 
   // =========================================================================
+  // 0. KOREAN WIDE 2-CUT (2 Slots Wide Landscape Stacked)
+  // =========================================================================
+  if (template.layoutType === 'korean-wide') {
+    const width = 800;
+    const padding = 44;
+    const gap = 24;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (9 / 16));
+    const headerHeight = 80;
+    const footerHeight = 100;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = bgColor || '#FAF8F5';
+    ctx.fillRect(0, 0, width, height);
+
+    if (borderColor) {
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(14, 14, width - 28, height - 28);
+    }
+
+    // Header
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 22px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillText('✦ KOREAN WIDE CUT • 2-SHOTS ✦', width / 2, 52);
+
+    // Photos
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 12, activeFilter, overlayImg);
+
+      // Shot label
+      ctx.fillStyle = '#1C1917';
+      ctx.beginPath();
+      ctx.roundRect(padding + 16, y + 16, 75, 26, 13);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 11px "Space Grotesk", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`SHOT 0${i + 1}`, padding + 16 + 37.5, y + 33);
+    });
+
+    // Footer
+    const footerY = height - 42;
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(`SWEET MEMORIES WITH BESTIES • ${dateStr} • IZIAPHOTO`, width / 2, footerY);
+  }
+
+  // =========================================================================
   // 1. VINTAGE NEWSPAPER (Monochrome, B&W Filter, Headlines & Article Columns)
   // =========================================================================
-  if (template.category === 'newspaper') {
+  else if (template.layoutType === 'newspaper' || template.category === 'newspaper') {
     const width = 840;
     const padding = 44;
     const gap = 24;
@@ -841,6 +898,383 @@ export async function renderPhotoboothCanvas(
 
     ctx.font = 'italic 12px monospace';
     ctx.fillText('*** THANK YOU FOR VISITING IZIAPHOTO ***', width / 2, barcodeY + 70);
+  }
+
+  // =========================================================================
+  // 7. CLASSIC POLAROID 600 (Single Shot Classic Instant Frame)
+  // =========================================================================
+  else if (template.layoutType === 'polaroid-single' || (template.category === 'polaroid' && count === 1)) {
+    const width = 720;
+    const padding = 44;
+    const photoWidth = width - padding * 2;
+    const photoHeight = photoWidth; // 1:1 square classic format
+    const topMargin = 50;
+    const bottomMargin = 170;
+    const height = topMargin + photoHeight + bottomMargin;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Classic Polaroid White Paper
+    ctx.fillStyle = bgColor || '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+
+    // Subtle outer border
+    ctx.strokeStyle = '#E5E7EB';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(10, 10, width - 20, height - 20);
+
+    // Top washi tape accent
+    ctx.fillStyle = '#FDE68A';
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(width / 2 - 60, 6, 120, 24);
+    ctx.globalAlpha = 1.0;
+
+    // Photo
+    drawCoverImage(ctx, images[0], padding, topMargin, photoWidth, photoHeight, 2, activeFilter, overlayImg);
+
+    // Subtle inner border around photo
+    ctx.strokeStyle = '#1F2937';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(padding, topMargin, photoWidth, photoHeight);
+
+    // Handwritten cursive text in thick bottom margin
+    ctx.fillStyle = textColor || '#1F2937';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 34px "Caveat", "Brush Script MT", cursive, sans-serif';
+    ctx.fillText('Our Little Moments ♡', width / 2, topMargin + photoHeight + 68);
+
+    ctx.font = '500 13px "Space Grotesk", monospace';
+    ctx.letterSpacing = '2px';
+    ctx.fillStyle = '#6B7280';
+    ctx.fillText(`POLAROID 600 • ${dateStr} • IZIAPHOTO`, width / 2, topMargin + photoHeight + 110);
+  }
+
+  // =========================================================================
+  // 8. DUAL POLAROID STACK (2 Stacked Polaroids with Washi Tape)
+  // =========================================================================
+  else if (template.layoutType === 'polaroid-dual' || (template.category === 'polaroid' && count === 2)) {
+    const width = 720;
+    const padding = 44;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 70;
+    const footerHeight = 90;
+    const gap = 36;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = bgColor || '#FDFBF7';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = textColor || '#292524';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 20px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('✦ DUAL POLAROID MEMORIES ✦', width / 2, 45);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      // Card backing
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(padding - 6, y - 6, photoWidth + 12, photoHeight + 12);
+      ctx.strokeStyle = '#E7E5E4';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(padding - 6, y - 6, photoWidth + 12, photoHeight + 12);
+
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 0, activeFilter, overlayImg);
+
+      // Washi tape accent in corner
+      ctx.fillStyle = i === 0 ? '#FDE68A' : '#FECDD3';
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(padding + 12, y - 14, 60, 18);
+      ctx.globalAlpha = 1.0;
+    });
+
+    const footerY = height - 38;
+    ctx.fillStyle = textColor || '#292524';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px "Caveat", cursive, sans-serif';
+    ctx.fillText(`Captured with love • ${dateStr} • IziaPhoto`, width / 2, footerY);
+  }
+
+  // =========================================================================
+  // 9. Y2K CYBER SILVER (CD Prism Chrome Metallic)
+  // =========================================================================
+  else if (template.layoutType === 'y2k-chrome' || template.category === 'y2k') {
+    const width = 640;
+    const padding = 36;
+    const gap = 20;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 85;
+    const footerHeight = 110;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Metallic silver chrome linear gradient
+    const chromeGrad = ctx.createLinearGradient(0, 0, width, height);
+    chromeGrad.addColorStop(0, '#E2E8F0');
+    chromeGrad.addColorStop(0.3, '#F8FAFC');
+    chromeGrad.addColorStop(0.5, '#CBD5E1');
+    chromeGrad.addColorStop(0.7, '#F1F5F9');
+    chromeGrad.addColorStop(1, '#94A3B8');
+    ctx.fillStyle = chromeGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(12, 12, width - 24, height - 24);
+
+    // Header Y2K
+    ctx.fillStyle = '#0F172A';
+    ctx.textAlign = 'center';
+    ctx.font = '900 24px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '6px';
+    ctx.fillText('✦ CYBER 2000 • CD PRISM ✦', width / 2, 54);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      ctx.fillStyle = '#0F172A';
+      ctx.fillRect(padding - 4, y - 4, photoWidth + 8, photoHeight + 8);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 0, activeFilter, overlayImg);
+
+      ctx.font = '24px sans-serif';
+      ctx.fillStyle = '#6366F1';
+      ctx.fillText('✦', padding + 24, y + 32);
+      ctx.fillText('✧', width - padding - 24, y + photoHeight - 16);
+    });
+
+    const footerY = height - 42;
+    ctx.fillStyle = '#0F172A';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 15px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(`★ FUTURE NOSTALGIA • ${dateStr} ★`, width / 2, footerY);
+  }
+
+  // =========================================================================
+  // 10. PASSPORT & ID PHOTO (6 Slots 2x3 Grid Sheet)
+  // =========================================================================
+  else if (template.layoutType === 'passport-grid' || template.category === 'passport') {
+    const width = 800;
+    const padding = 44;
+    const cols = 2;
+    const rows = 3;
+    const gapX = 20;
+    const gapY = 20;
+    const cellWidth = Math.round((width - padding * 2 - (cols - 1) * gapX) / cols);
+    const cellHeight = Math.round(cellWidth * (4 / 3));
+    const headerHeight = 100;
+    const footerHeight = 90;
+    const height = headerHeight + rows * cellHeight + (rows - 1) * gapY + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = bgColor || '#F8FAFC';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(14, 14, width - 28, height - 28);
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 20, width - 40, height - 40);
+
+    ctx.fillStyle = '#0F172A';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillText('OFFICIAL PASSPORT & ID PHOTOBOOTH', width / 2, 55);
+
+    ctx.font = '600 12px "Space Grotesk", monospace';
+    ctx.letterSpacing = '3px';
+    ctx.fillStyle = '#2563EB';
+    ctx.fillText('REGISTRATION: #IZIA-2026 • 2x3 PASFOTO ID SHEET', width / 2, 78);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        const img = images[idx % images.length];
+        const x = padding + c * (cellWidth + gapX);
+        const y = headerHeight + r * (cellHeight + gapY);
+
+        ctx.fillStyle = '#E2E8F0';
+        ctx.fillRect(x - 2, y - 2, cellWidth + 4, cellHeight + 4);
+        drawCoverImage(ctx, img, x, y, cellWidth, cellHeight, 0, activeFilter, overlayImg);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + 10, y + 6);
+        ctx.lineTo(x + 10, y + 16);
+        ctx.moveTo(x + 6, y + 10);
+        ctx.lineTo(x + 16, y + 10);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x + cellWidth - 10, y + cellHeight - 6);
+        ctx.lineTo(x + cellWidth - 10, y + cellHeight - 16);
+        ctx.moveTo(x + cellWidth - 6, y + cellHeight - 10);
+        ctx.lineTo(x + cellWidth - 16, y + cellHeight - 10);
+        ctx.stroke();
+      }
+    }
+
+    const stampX = width - padding - 80;
+    const stampY = height - footerHeight / 2 - 10;
+    ctx.strokeStyle = '#2563EB';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(stampX, stampY, 32, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#2563EB';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 8px "Space Grotesk", monospace';
+    ctx.fillText('IZIAPHOTO', stampX, stampY - 8);
+    ctx.fillText('VERIFIED', stampX, stampY + 2);
+    ctx.fillText('2026', stampX, stampY + 12);
+
+    ctx.fillStyle = '#475569';
+    ctx.textAlign = 'left';
+    ctx.font = '600 12px "Space Grotesk", monospace';
+    ctx.fillText(`AUTHENTIC PHOTO IDENTIFICATION • ISSUED: ${dateStr}`, padding, height - 38);
+  }
+
+  // =========================================================================
+  // 11. ROMANTIC FLORAL ROMANCE (4 Slots Botanical Vines)
+  // =========================================================================
+  else if (template.layoutType === 'floral-romance' || template.category === 'floral') {
+    const width = 640;
+    const padding = 36;
+    const gap = 22;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 90;
+    const footerHeight = 110;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = bgColor || '#FFFBEB';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#FDE68A';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(12, 12, width - 24, height - 24);
+
+    ctx.fillStyle = '#831843';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 24px "Caveat", "Brush Script MT", cursive, serif';
+    ctx.fillText('🌹 Floral Romance • Rose Edition 🌹', width / 2, 55);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      ctx.fillStyle = '#FFF1F2';
+      ctx.fillRect(padding - 4, y - 4, photoWidth + 8, photoHeight + 8);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 4, activeFilter, overlayImg);
+
+      ctx.font = '22px sans-serif';
+      ctx.fillText('🌸', padding + 16, y + 24);
+      ctx.fillText('🌿', width - padding - 16, y + photoHeight - 12);
+    });
+
+    const footerY = height - 44;
+    ctx.fillStyle = '#831843';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 20px "Caveat", cursive, sans-serif';
+    ctx.fillText(`♡ Cherished Love & Memories • ${dateStr} ♡`, width / 2, footerY);
+  }
+
+  // =========================================================================
+  // 12. CINEMA FILM STRIP / MOVIE TICKET (2 Slots Retro Ticket)
+  // =========================================================================
+  else if (template.layoutType === 'cinema-ticket' || template.category === 'cinema') {
+    const width = 720;
+    const padding = 44;
+    const gap = 24;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (9 / 16));
+    const headerHeight = 110;
+    const footerHeight = 120;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.fillStyle = bgColor || '#FEF2F2';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(16, 16, width - 32, height - 32);
+
+    // Left and Right Ticket Notch Cutouts
+    ctx.fillStyle = '#0C0D12';
+    const notchRadius = 24;
+    const notchY = headerHeight + photoHeight + gap / 2;
+    ctx.beginPath();
+    ctx.arc(0, notchY, notchRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(width, notchY, notchRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#7F1D1D';
+    ctx.textAlign = 'center';
+    ctx.font = '900 24px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillText('🎟️ CINEMA MOVIE TICKET • ADMIT ONE 🎟️', width / 2, 54);
+
+    ctx.font = '600 12px "Space Grotesk", monospace';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('SPECIAL PREMIERE • AUDITORIUM 04 • SEAT A-12', width / 2, 80);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 6, activeFilter, overlayImg);
+
+      ctx.fillStyle = '#DC2626';
+      ctx.beginPath();
+      ctx.roundRect(padding + 16, y + 16, 80, 24, 6);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`SCENE 0${i + 1}`, padding + 16 + 40, y + 32);
+    });
+
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding, height - footerHeight + 15);
+    ctx.lineTo(width - padding, height - footerHeight + 15);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const barcodeY = height - footerHeight + 35;
+    ctx.fillStyle = '#7F1D1D';
+    const barcodeStartX = width / 2 - 110;
+    const barcodeWidths = [2, 3, 1, 4, 2, 5, 1, 3, 2, 1, 4, 3, 2, 1, 4, 2, 3, 1, 3, 2, 4, 1, 3, 2];
+    let curX = barcodeStartX;
+    barcodeWidths.forEach((w) => {
+      ctx.fillRect(curX, barcodeY, w, 36);
+      curX += w + 5;
+    });
+
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(`||| TICKET #8849-2026 • DATE: ${dateStr} |||`, width / 2, barcodeY + 54);
   }
 
   return canvas;
