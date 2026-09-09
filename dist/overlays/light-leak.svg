@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
+  <defs>
+    <!-- Top-Right Intense Light Burn Gradient -->
+    <radialGradient id="burnGradTR" cx="100%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#fff7ed" stop-opacity="0.9" />
+      <stop offset="25%" stop-color="#fdba74" stop-opacity="0.75" />
+      <stop offset="55%" stop-color="#f43f5e" stop-opacity="0.5" />
+      <stop offset="85%" stop-color="#a855f7" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Bottom-Left Cyan/Violet Cool Leak Gradient -->
+    <radialGradient id="burnGradBL" cx="0%" cy="100%" r="75%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6" />
+      <stop offset="35%" stop-color="#818cf8" stop-opacity="0.4" />
+      <stop offset="70%" stop-color="#c084fc" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Diagonal Prism Optical Streak -->
+    <linearGradient id="prismStreak" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0" />
+      <stop offset="42%" stop-color="#fb923c" stop-opacity="0.3" />
+      <stop offset="48%" stop-color="#fef08a" stop-opacity="0.6" />
+      <stop offset="52%" stop-color="#38bdf8" stop-opacity="0.5" />
+      <stop offset="58%" stop-color="#c084fc" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Warm Side Rim -->
+    <linearGradient id="rightEdgeBurn" x1="100%" y1="50%" x2="70%" y2="50%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.55" />
+      <stop offset="50%" stop-color="#ec4899" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Lens Flare Orbs -->
+    <radialGradient id="flareOrb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#fef08a" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="ringFlare" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#38bdf8" stop-opacity="0" />
+      <stop offset="85%" stop-color="#38bdf8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Top-Right Intense Light Burn -->
+  <rect x="0" y="0" width="600" height="800" fill="url(#burnGradTR)" />
+
+  <!-- Bottom-Left Glow Leak -->
+  <rect x="0" y="0" width="600" height="800" fill="url(#burnGradBL)" />
+
+  <!-- Right Edge Film Strip Flare -->
+  <rect x="350" y="0" width="250" height="800" fill="url(#rightEdgeBurn)" />
+
+  <!-- Diagonal Spectral Prism Beam -->
+  <polygon points="150,0 260,0 450,800 340,800" fill="url(#prismStreak)" opacity="0.75" />
+
+  <!-- Glowing Lens Flare Hexagonal & Circular Orbs -->
+  <circle cx="480" cy="140" r="60" fill="url(#flareOrb)" opacity="0.6" />
+  <circle cx="390" cy="270" r="35" fill="url(#flareOrb)" opacity="0.4" />
+  <circle cx="270" cy="450" r="45" fill="url(#ringFlare)" opacity="0.6" />
+  <circle cx="210" cy="550" r="25" fill="url(#flareOrb)" opacity="0.3" />
+</svg>

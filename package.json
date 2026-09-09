@@ -12,6 +12,7 @@
     "dev:all": "concurrently -n \"SERVER,CLIENT\" -c \"bgBlue.bold,bgMagenta.bold\" \"tsx watch server/index.ts\" \"vite --host 0.0.0.0\""
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -28,6 +29,8 @@
     "uuid": "^11.0.5"
   },
   "devDependencies": {
+    "@esbuild/darwin-x64": "^0.28.2",
+    "@rollup/rollup-darwin-x64": "^4.63.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.4",

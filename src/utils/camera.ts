@@ -64,18 +64,43 @@ export class CameraService {
     return this.currentFacing;
   }
 
+  private static loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+      img.src = src;
+    });
+  }
+
   /**
-   * Captures a single still image from a <video> element with proper aspect ratio and mirroring if selfie
+   * Captures a single still image from a <video> element with proper aspect ratio, mirroring, filter, and optional overlay / AR canvas
    */
-  static captureFrame(video: HTMLVideoElement, mirror = true): string {
-    const canvas = document.createElement('canvas');
+  static async captureFrame(
+    video: HTMLVideoElement,
+    mirror = true,
+    filter = 'none',
+    overlayUrl?: string | null,
+    arCanvas?: HTMLCanvasElement | null
+  ): Promise<string> {
     const width = video.videoWidth || 1280;
     const height = video.videoHeight || 720;
 
+    const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas 2D context unavailable');
+
+    ctx.save();
+    if (filter && filter !== 'none') {
+      try {
+        ctx.filter = filter;
+      } catch (err) {
+        console.warn('[CameraService] ctx.filter not supported:', err);
+      }
+    }
 
     if (mirror) {
       ctx.translate(width, 0);
@@ -83,6 +108,32 @@ export class CameraService {
     }
 
     ctx.drawImage(video, 0, 0, width, height);
+    ctx.restore();
+
+    // 1. If AR canvas with multi-person tracking is present, composite it onto the frame
+    if (arCanvas && arCanvas.width > 0 && arCanvas.height > 0) {
+      try {
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.drawImage(arCanvas, 0, 0, width, height);
+        ctx.restore();
+      } catch (err) {
+        console.warn('[CameraService] Failed to composite AR canvas on capture:', err);
+      }
+    }
+    // 2. Otherwise draw static frame overlay if present
+    else if (overlayUrl) {
+      try {
+        const overlayImg = await this.loadImage(overlayUrl);
+        ctx.save();
+        ctx.filter = 'none';
+        ctx.drawImage(overlayImg, 0, 0, width, height);
+        ctx.restore();
+      } catch (err) {
+        console.warn('[CameraService] Failed to draw overlay on frame:', err);
+      }
+    }
+
     return canvas.toDataURL('image/jpeg', 0.95);
   }
 

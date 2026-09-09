@@ -36,14 +36,21 @@ export function TemplateSelectionPage() {
           <span>Beranda</span>
         </Link>
 
-        <div className="text-center">
-          <span className="font-display font-bold text-base tracking-wider text-white">
-            IZIAPHOTO
-          </span>
-          <span className="block text-[9px] font-semibold text-coral-400 tracking-widest uppercase">
-            {hasPhotos ? 'GANTI TEMPLATE VIRAL' : 'PRESET TEMPLATE VIRAL'}
-          </span>
-        </div>
+        <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <img
+            src="/logo-icon.png"
+            alt="IziaPhoto"
+            className="w-8 h-8 rounded-lg shadow-sm object-contain"
+          />
+          <div className="text-left">
+            <span className="font-display font-black text-sm sm:text-base tracking-tight text-white block leading-none">
+              Izia<span className="text-violet-400">Photo</span>
+            </span>
+            <span className="block text-[8px] font-bold text-coral-400 tracking-widest uppercase mt-0.5">
+              {hasPhotos ? 'GANTI TEMPLATE' : 'PRESET VIRAL'}
+            </span>
+          </div>
+        </Link>
 
         <div className="w-16 flex justify-end">
           <span className="text-xs px-2.5 py-1 rounded-full bg-coral-500/10 text-coral-400 font-semibold border border-coral-500/20">

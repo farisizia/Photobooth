@@ -11,7 +11,10 @@ function FrameMockup({ id }: { id: string }) {
         <div className="w-[145px] sm:w-[160px] bg-[#FFF0F5] border border-pink-200/90 rounded-xl p-2 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300 flex flex-col justify-between select-none">
           {/* Top Header */}
           <div className="flex items-center justify-between px-0.5 mb-1 text-[7px] font-bold text-rose-500 uppercase tracking-wider">
-            <span>IZIAPHOTO</span>
+            <div className="flex items-center gap-1">
+              <img src="/logo-icon.png" alt="IziaPhoto" className="w-3 h-3 rounded-xs object-contain" />
+              <span>IZIAPHOTO</span>
+            </div>
             <span>✨ 4-CUTS</span>
           </div>
 

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
+  <defs>
+    <linearGradient id="rosePetal1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2" />
+      <stop offset="40%" stop-color="#fda4af" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+    <linearGradient id="rosePetal2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdf2f8" />
+      <stop offset="50%" stop-color="#f472b6" />
+      <stop offset="100%" stop-color="#db2777" />
+    </linearGradient>
+    <linearGradient id="warmPetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff7ed" />
+      <stop offset="50%" stop-color="#fed7aa" />
+      <stop offset="100%" stop-color="#fb923c" />
+    </linearGradient>
+    <filter id="petalBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" />
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.25" />
+    </filter>
+
+    <!-- Curved realistic petal shape 1 -->
+    <g id="petalShape1">
+      <path d="M 0 0 C -15 -25 -25 -50 0 -65 C 25 -50 15 -25 0 0" fill="url(#rosePetal1)" />
+      <path d="M 0 -65 Q 4 -30 0 0" stroke="#f43f5e" stroke-width="0.75" opacity="0.3" fill="none" />
+    </g>
+
+    <!-- Curved twisted petal shape 2 -->
+    <g id="petalShape2">
+      <path d="M -10 0 C -22 -18 -15 -45 5 -55 C 20 -40 18 -15 5 0 Z" fill="url(#rosePetal2)" />
+      <path d="M 5 -55 C -2 -35 -3 -15 -10 0" stroke="#db2777" stroke-width="0.75" opacity="0.35" fill="none" />
+    </g>
+
+    <!-- Small rounded petal -->
+    <g id="petalShape3">
+      <ellipse cx="0" cy="0" rx="9" ry="15" fill="url(#warmPetal)" />
+    </g>
+  </defs>
+
+  <!-- Large Foreground Floating Petals (Slightly blurred for camera depth-of-field) -->
+  <g filter="url(#petalBlur)" opacity="0.75">
+    <use href="#petalShape1" transform="translate(60, 110) scale(1.6) rotate(35)" />
+    <use href="#petalShape2" transform="translate(540, 680) scale(1.8) rotate(-70)" />
+    <use href="#petalShape1" transform="translate(520, 90) scale(1.4) rotate(115)" />
+  </g>
+
+  <!-- In-Focus Romantic Drifting Petals with Soft Shadows -->
+  <g filter="url(#softShadow)">
+    <!-- Upper Atmosphere -->
+    <use href="#petalShape1" transform="translate(180, 70) scale(0.9) rotate(45)" opacity="0.9" />
+    <use href="#petalShape2" transform="translate(290, 45) scale(0.75) rotate(-25)" opacity="0.85" />
+    <use href="#petalShape3" transform="translate(420, 110) scale(0.8) rotate(60)" opacity="0.85" />
+
+    <!-- Mid Section Floating Petals (Leaving face area open) -->
+    <use href="#petalShape2" transform="translate(50, 260) scale(1.0) rotate(80)" opacity="0.9" />
+    <use href="#petalShape1" transform="translate(90, 390) scale(0.85) rotate(-40)" opacity="0.9" />
+    <use href="#petalShape3" transform="translate(530, 220) scale(0.9) rotate(-15)" opacity="0.85" />
+    <use href="#petalShape2" transform="translate(490, 370) scale(1.05) rotate(55)" opacity="0.95" />
+    <use href="#petalShape1" transform="translate(550, 480) scale(0.8) rotate(-65)" opacity="0.9" />
+
+    <!-- Lower Section Breeze Petals -->
+    <use href="#petalShape1" transform="translate(120, 560) scale(1.1) rotate(20)" opacity="0.95" />
+    <use href="#petalShape2" transform="translate(220, 690) scale(0.95) rotate(-50)" opacity="0.9" />
+    <use href="#petalShape3" transform="translate(70, 710) scale(0.85) rotate(75)" opacity="0.85" />
+    <use href="#petalShape1" transform="translate(360, 740) scale(1.15) rotate(40)" opacity="0.95" />
+    <use href="#petalShape2" transform="translate(440, 630) scale(0.9) rotate(-30)" opacity="0.9" />
+    <use href="#petalShape3" transform="translate(320, 610) scale(0.75) rotate(15)" opacity="0.85" />
+  </g>
+
+  <!-- Tiny Background Drifting Petal Flecks -->
+  <g opacity="0.6">
+    <circle cx="210" cy="180" r="3.5" fill="#fda4af" />
+    <circle cx="380" cy="240" r="2.5" fill="#f472b6" />
+    <circle cx="470" cy="290" r="3" fill="#fed7aa" />
+    <circle cx="150" cy="460" r="2" fill="#fda4af" />
+    <circle cx="430" cy="510" r="3.5" fill="#f472b6" />
+    <circle cx="280" cy="710" r="2.5" fill="#fed7aa" />
+    <circle cx="170" cy="650" r="3" fill="#fda4af" />
+  </g>
+</svg>

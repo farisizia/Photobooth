@@ -12,6 +12,9 @@ import {
   saveCapturedPhotos,
   clearCapturedPhotos,
 } from '../utils/storage';
+import { CameraFilter, DEFAULT_FILTER } from '../utils/filters';
+import { OverlayItem, DEFAULT_OVERLAY } from '../utils/overlays';
+import { FilterOverlayTray } from '../components/FilterOverlayTray';
 
 type PhotoboothState = 'camera-request' | 'ready' | 'capturing' | 'result' | 'error';
 
@@ -68,11 +71,16 @@ export function PhotoboothPage() {
   const [facing, setFacing] = useState<FacingMode>('user');
   const [mirrored, setMirrored] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<CameraFilter>(DEFAULT_FILTER);
+  const [selectedOverlay, setSelectedOverlay] = useState<OverlayItem>(DEFAULT_OVERLAY);
+  const [lightingBoost, setLightingBoost] = useState(false);
+  const [retakeTargetIndex, setRetakeTargetIndex] = useState<number | null>(null);
 
   // Capture session state
   const [currentShotIndex, setCurrentShotIndex] = useState(0);
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [showFilterTray, setShowFilterTray] = useState(false);
 
   // Video container reference for taking snapshots
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -114,17 +122,69 @@ export function PhotoboothPage() {
     setMirrored((prev) => !prev);
   };
 
-  // Capture single frame from the active video stream
-  const captureCurrentFrame = (): string | null => {
+  // Capture single frame from the active video stream with active filter, lighting, and overlay
+  const captureCurrentFrame = async (): Promise<string | null> => {
     const video = containerRef.current?.querySelector('video');
     if (!video) return null;
-    return CameraService.captureFrame(video, mirrored);
+
+    const combinedFilter = [
+      selectedFilter.cssFilter !== 'none' ? selectedFilter.cssFilter : '',
+      lightingBoost ? 'brightness(1.14) contrast(1.06) saturate(1.04)' : '',
+    ].filter(Boolean).join(' ') || 'none';
+    return await CameraService.captureFrame(
+      video,
+      mirrored,
+      combinedFilter,
+      selectedOverlay.url
+    );
   };
 
-  // Run the automated photobooth sequence matching template slot count
+  // Run automated photobooth sequence (full session or single retake)
   const startPhotoSession = async () => {
     if (state === 'capturing') return;
+    setShowFilterTray(false);
 
+    // SINGLE PHOTO RETAKE MODE
+    if (retakeTargetIndex !== null) {
+      setState('capturing');
+      setCurrentShotIndex(retakeTargetIndex);
+
+      // Countdown: 3, 2, 1
+      for (let sec = 3; sec >= 1; sec--) {
+        setCountdownValue(sec);
+        playSound('beep');
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      // 0 = Snap trigger
+      setCountdownValue(0);
+      playSound('shutter');
+      setIsFlashing(true);
+
+      const frame = await captureCurrentFrame();
+      await new Promise((r) => setTimeout(r, 300));
+      setIsFlashing(false);
+      setCountdownValue(null);
+
+      if (frame) {
+        setPhotos((prev) => {
+          const updated = [...prev];
+          if (retakeTargetIndex < updated.length) {
+            updated[retakeTargetIndex] = frame;
+          } else {
+            updated.push(frame);
+          }
+          saveCapturedPhotos(updated);
+          return updated;
+        });
+      }
+
+      setRetakeTargetIndex(null);
+      setState('result');
+      return;
+    }
+
+    // FULL SESSION MULTI-SHOT MODE
     setPhotos([]);
     setCurrentShotIndex(0);
     setState('capturing');
@@ -147,7 +207,7 @@ export function PhotoboothPage() {
       setIsFlashing(true);
 
       // Capture frame
-      const frame = captureCurrentFrame();
+      const frame = await captureCurrentFrame();
       if (frame) {
         capturedPhotos.push(frame);
         setPhotos([...capturedPhotos]);
@@ -169,10 +229,47 @@ export function PhotoboothPage() {
     setState('result');
   };
 
-  // Reset to live camera mode
+  // Single photo retake (opens camera specifically for slot index)
+  const handleRetakeSingle = (index: number) => {
+    setRetakeTargetIndex(index);
+    setCurrentShotIndex(index);
+    setState('ready');
+    initCamera(facing);
+  };
+
+  // Delete single photo from slot
+  const handleDeleteSingle = (index: number) => {
+    const updated = photos.filter((_, i) => i !== index);
+    setPhotos(updated);
+    saveCapturedPhotos(updated);
+  };
+
+  // Reorder photos (drag & drop or arrows)
+  const handleReorderPhotos = (newPhotos: string[]) => {
+    setPhotos(newPhotos);
+    saveCapturedPhotos(newPhotos);
+  };
+
+  // Add photo into next empty slot
+  const handleAddMissingPhoto = () => {
+    const nextIdx = photos.length;
+    setRetakeTargetIndex(nextIdx);
+    setCurrentShotIndex(nextIdx);
+    setState('ready');
+    initCamera(facing);
+  };
+
+  // Cancel single retake and return to result screen safely
+  const handleCancelRetake = () => {
+    setRetakeTargetIndex(null);
+    setState('result');
+  };
+
+  // Reset full session to live camera mode
   const handleRetake = () => {
     clearCapturedPhotos();
     setPhotos([]);
+    setRetakeTargetIndex(null);
     setCurrentShotIndex(0);
     setCountdownValue(null);
     setIsFlashing(false);
@@ -181,23 +278,43 @@ export function PhotoboothPage() {
   };
 
   return (
-    <div className="h-[100dvh] min-h-screen bg-[#0C0D12] text-white flex flex-col justify-between overflow-y-auto pt-safe pb-safe selection:bg-coral-500">
+    <div
+      className={`min-h-[100dvh] bg-[#0C0D12] text-white flex flex-col justify-between pt-safe pb-safe selection:bg-coral-500 ${
+        state === 'result' || showFilterTray ? 'overflow-y-auto' : 'h-[100dvh] overflow-hidden'
+      }`}
+    >
       {/* Photobooth Header */}
-      <header className="sticky top-0 z-30 w-full glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between flex-shrink-0">
-        <Link
-          to="/templates"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill text-xs font-semibold text-gray-300 hover:text-white transition-all active:scale-95"
-        >
-          <span>←</span>
-          <span>Ganti Template</span>
-        </Link>
+      <header className="sticky top-0 z-30 w-full glass-panel border-b border-white/10 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {retakeTargetIndex !== null ? (
+            <button
+              type="button"
+              onClick={handleCancelRetake}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill text-xs font-semibold text-rose-300 hover:text-white border border-rose-500/30 transition-all active:scale-95"
+            >
+              <span>✕</span>
+              <span>Batal Ubah Foto</span>
+            </button>
+          ) : (
+            <Link
+              to="/templates"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-pill text-xs font-semibold text-gray-300 hover:text-white transition-all active:scale-95"
+            >
+              <span>←</span>
+              <span className="hidden sm:inline">Ganti Template</span>
+            </Link>
+          )}
+          <Link to="/" className="hidden xs:flex items-center gap-1.5 hover:opacity-90 transition-opacity" title="IziaPhoto Home">
+            <img src="/logo-icon.png" alt="IziaPhoto" className="w-7 h-7 rounded-md object-contain" />
+          </Link>
+        </div>
 
         <div className="text-center">
           <span className="font-display font-bold text-sm sm:text-base tracking-wider text-white">
-            {template.name}
+            {retakeTargetIndex !== null ? `UBAH FOTO #${retakeTargetIndex + 1}` : template.name}
           </span>
           <span className="block text-[9px] font-semibold text-coral-400 tracking-widest uppercase">
-            {totalShots} SLOT FOTO
+            {retakeTargetIndex !== null ? `PENGGANTI SLOT #${retakeTargetIndex + 1}` : `${totalShots} SLOT FOTO`}
           </span>
         </div>
 
@@ -215,7 +332,9 @@ export function PhotoboothPage() {
             }`}
           />
           <span className="capitalize hidden sm:inline">
-            {state === 'ready'
+            {retakeTargetIndex !== null
+              ? state === 'capturing' ? 'Mengambil Foto...' : 'Siap Ubah Foto'
+              : state === 'ready'
               ? 'Ready'
               : state === 'capturing'
               ? 'Taking Photo'
@@ -227,7 +346,7 @@ export function PhotoboothPage() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 min-h-0 flex flex-col justify-center items-center px-4 py-2 sm:py-4 pb-8 sm:pb-12 max-w-2xl mx-auto w-full">
+      <main className="photobooth-main-stage flex-1 min-h-0 flex flex-col justify-between items-center px-3 sm:px-4 py-1 sm:py-2 mx-auto w-full">
         {/* Permission Request / Error State */}
         {(state === 'camera-request' || state === 'error') && (
           <div className="glass-panel p-8 rounded-3xl border border-white/10 text-center max-w-md mx-auto my-auto animate-fade-in shadow-2xl">
@@ -259,9 +378,9 @@ export function PhotoboothPage() {
 
         {/* Live View & Capture Session */}
         {(state === 'ready' || state === 'capturing') && (
-          <div className="flex flex-col items-center justify-center w-full animate-fade-in my-auto">
+          <div className="flex flex-col items-center w-full animate-fade-in flex-1 min-h-0">
             {/* Viewfinder Frame with Countdown Overlay */}
-            <div ref={containerRef} className="relative w-auto flex justify-center items-center">
+            <div ref={containerRef} className="relative w-full flex-shrink-0 flex justify-center items-center my-auto min-h-0">
               <CameraPreview
                 stream={stream}
                 facing={facing}
@@ -269,34 +388,78 @@ export function PhotoboothPage() {
                 onSwitchCamera={handleSwitchCamera}
                 onToggleMirror={handleToggleMirror}
                 disabled={state === 'capturing'}
+                selectedFilter={selectedFilter}
+                onSelectFilter={setSelectedFilter}
+                selectedOverlay={selectedOverlay}
+                onSelectOverlay={setSelectedOverlay}
+                templateName={
+                  retakeTargetIndex !== null
+                    ? `Ubah Foto #${retakeTargetIndex + 1}`
+                    : template.name
+                }
+                templateSlots={retakeTargetIndex !== null ? 1 : totalShots}
+                lightingBoost={lightingBoost}
+                onToggleLighting={() => setLightingBoost((prev) => !prev)}
+                showFilterTray={showFilterTray}
+                onToggleFilterTray={() => setShowFilterTray((prev) => !prev)}
               />
 
               <Countdown
                 count={countdownValue}
                 photoIndex={currentShotIndex}
                 isFlashing={isFlashing}
+                totalPhotos={retakeTargetIndex !== null ? 1 : totalShots}
               />
             </div>
 
-            {/* Shutter Button & Status */}
-            <CaptureButton
-              onStart={startPhotoSession}
-              isCapturing={state === 'capturing'}
-              photoIndex={currentShotIndex}
-              totalPhotos={totalShots}
-              disabled={!stream}
-            />
+            {/* Effect / Filter Picker (In normal document flow, placed directly beneath camera preview) */}
+            {showFilterTray && state !== 'capturing' && (
+              <div className="photobooth-tray-stage w-full mx-auto my-2.5 z-20 flex-shrink-0 animate-fade-in">
+                <FilterOverlayTray
+                  selectedFilter={selectedFilter}
+                  onSelectFilter={setSelectedFilter}
+                  selectedOverlay={selectedOverlay}
+                  onSelectOverlay={setSelectedOverlay}
+                  onClose={() => setShowFilterTray(false)}
+                />
+              </div>
+            )}
+
+            {/* Shutter Button & Status in Thumb Zone */}
+            <div className="w-full flex-shrink-0 pt-1.5 pb-safe mt-auto">
+              <CaptureButton
+                onStart={startPhotoSession}
+                isCapturing={state === 'capturing'}
+                photoIndex={currentShotIndex}
+                totalPhotos={totalShots}
+                disabled={!stream}
+                isSingleRetake={retakeTargetIndex !== null}
+                retakeSlotIndex={retakeTargetIndex ?? undefined}
+                onCancelRetake={handleCancelRetake}
+              />
+            </div>
           </div>
         )}
 
         {/* Result & Template Editor */}
         {state === 'result' && (
-          <div className="space-y-6 w-full animate-fade-in">
-            <PhotoGrid photos={photos} />
+          <div className="space-y-6 w-full animate-fade-in py-4">
+            <PhotoGrid
+              photos={photos}
+              totalSlots={totalShots}
+              onRetakePhoto={handleRetakeSingle}
+              onDeletePhoto={handleDeleteSingle}
+              onReorderPhotos={handleReorderPhotos}
+              onAddPhoto={handleAddMissingPhoto}
+            />
             <PhotoTemplate
               photos={photos}
               template={template}
               onRetake={handleRetake}
+              selectedFilter={selectedFilter}
+              onSelectFilter={setSelectedFilter}
+              selectedOverlay={selectedOverlay}
+              onSelectOverlay={setSelectedOverlay}
             />
           </div>
         )}

@@ -59,7 +59,9 @@ const drawCoverImage = (
   dy: number,
   dWidth: number,
   dHeight: number,
-  radius = 0
+  radius = 0,
+  filter?: string,
+  overlayImg?: HTMLImageElement | null
 ) => {
   const imgRatio = img.width / img.height;
   const destRatio = dWidth / dHeight;
@@ -83,7 +85,23 @@ const drawCoverImage = (
     ctx.roundRect(dx, dy, dWidth, dHeight, radius);
     ctx.clip();
   }
+  if (filter && filter !== 'none') {
+    try {
+      ctx.filter = filter;
+    } catch {
+      // ignore
+    }
+  }
   ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+
+  if (overlayImg) {
+    try {
+      ctx.filter = 'none';
+      ctx.drawImage(overlayImg, dx, dy, dWidth, dHeight);
+    } catch {
+      // ignore
+    }
+  }
   ctx.restore();
 };
 
@@ -95,7 +113,9 @@ const drawCircleImage = (
   img: HTMLImageElement,
   cx: number,
   cy: number,
-  radius: number
+  radius: number,
+  filter?: string,
+  overlayImg?: HTMLImageElement | null
 ) => {
   const dSize = radius * 2;
   const imgRatio = img.width / img.height;
@@ -117,7 +137,23 @@ const drawCircleImage = (
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.clip();
+  if (filter && filter !== 'none') {
+    try {
+      ctx.filter = filter;
+    } catch {
+      // ignore
+    }
+  }
   ctx.drawImage(img, sx, sy, sWidth, sHeight, cx - radius, cy - radius, dSize, dSize);
+
+  if (overlayImg) {
+    try {
+      ctx.filter = 'none';
+      ctx.drawImage(overlayImg, cx - radius, cy - radius, dSize, dSize);
+    } catch {
+      // ignore
+    }
+  }
   ctx.restore();
 };
 
@@ -202,13 +238,28 @@ const drawCheckerboardBorder = (
 export async function renderPhotoboothCanvas(
   photos: string[],
   template: PhotoboothTemplate,
-  colorOverride?: FrameColor
+  colorOverride?: FrameColor,
+  options?: {
+    filter?: string;
+    overlayUrl?: string | null;
+  }
 ): Promise<HTMLCanvasElement> {
   if (photos.length === 0) throw new Error('Tidak ada foto untuk dirender.');
 
   const count = template.slots;
   const photoUrls = Array.from({ length: count }).map((_, i) => photos[i % photos.length]);
   const images = await Promise.all(photoUrls.map(loadImage));
+
+  let overlayImg: HTMLImageElement | null = null;
+  if (options?.overlayUrl) {
+    try {
+      overlayImg = await loadImage(options.overlayUrl);
+    } catch (err) {
+      console.warn('[renderPhotoboothCanvas] Failed to load overlay:', err);
+    }
+  }
+  const activeFilter = options?.filter && options.filter !== 'none' ? options.filter : undefined;
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context unavailable');
@@ -302,11 +353,10 @@ export async function renderPhotoboothCanvas(
       ctx.fillStyle = '#0A0A0A';
       ctx.fillRect(padding - 3, y - 3, photoWidth + 6, photoHeight - 22);
 
-      // Apply automatic Black & White (Grayscale + High Contrast) filter
+      // Apply automatic Black & White or user chosen filter
       ctx.save();
-      ctx.filter = 'grayscale(100%) contrast(125%) brightness(96%)';
-      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight - 28, 0);
-      ctx.filter = 'none';
+      const newsFilter = activeFilter || 'grayscale(100%) contrast(125%) brightness(96%)';
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight - 28, 0, newsFilter, overlayImg);
       ctx.restore();
 
       // Editorial Caption under each photo
@@ -407,7 +457,7 @@ export async function renderPhotoboothCanvas(
     // Photos
     images.forEach((img, i) => {
       const y = headerHeight + i * (photoHeight + gap);
-      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 8);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 8, activeFilter, overlayImg);
     });
 
     // Music Player Controller Area
@@ -522,7 +572,7 @@ export async function renderPhotoboothCanvas(
     // Photos
     images.forEach((img, i) => {
       const y = headerHeight + i * (photoHeight + gap);
-      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, isChecker ? 2 : 8);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, isChecker ? 2 : 8, activeFilter, overlayImg);
     });
 
     // Footer
@@ -592,7 +642,7 @@ export async function renderPhotoboothCanvas(
       // Photo frame
       ctx.fillStyle = '#000000';
       ctx.fillRect(sprocketMargin - 4, y - 4, photoWidth + 8, photoHeight + 8);
-      drawCoverImage(ctx, img, sprocketMargin, y, photoWidth, photoHeight, 0);
+      drawCoverImage(ctx, img, sprocketMargin, y, photoWidth, photoHeight, 0, activeFilter, overlayImg);
 
       // Frame Number in Film Margin
       ctx.fillStyle = '#F59E0B';
@@ -665,7 +715,7 @@ export async function renderPhotoboothCanvas(
       ctx.stroke();
 
       // Circle cropped photo
-      drawCircleImage(ctx, img, cx, cy, circleRadius);
+      drawCircleImage(ctx, img, cx, cy, circleRadius, activeFilter, overlayImg);
 
       // Mascot sticker emojis on sides
       ctx.font = '32px sans-serif';
@@ -746,7 +796,7 @@ export async function renderPhotoboothCanvas(
     // Photos
     images.forEach((img, i) => {
       const y = headerHeight + i * (photoHeight + gap);
-      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 0);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 0, activeFilter, overlayImg);
 
       // Photo slip label
       ctx.fillStyle = textColor;

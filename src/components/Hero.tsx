@@ -18,8 +18,8 @@ export function Hero() {
           <div className="lg:col-span-7 text-center lg:text-left">
             {/* Tagline Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200/80 text-xs font-bold text-rose-600 mb-5 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>📸 GRATIS • LIVE PHOTOBOOTH</span>
+              <img src="/logo-icon.png" alt="IziaPhoto" className="w-4 h-4 rounded-xs object-contain" />
+              <span>GRATIS • LIVE PHOTOBOOTH</span>
             </div>
 
             {/* Headline */}
@@ -36,9 +36,20 @@ export function Hero() {
             </p>
 
             {/* Gen Z Microcopy Callout */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-violet-50 text-violet-700 text-xs font-semibold mb-7 border border-violet-200/60">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-violet-50 text-violet-700 text-xs font-semibold mb-3.5 sm:mb-4 border border-violet-200/60">
               <span>✨</span>
               <span>POV: punya photobooth sendiri di HP. Pose dulu, mikir belakangan 😎</span>
+            </div>
+
+            {/* Subtle Developer Credit */}
+            <div className="flex items-center justify-center lg:justify-start mb-3.5 sm:mb-4 select-none">
+              <div className="flex items-center justify-center gap-2 sm:gap-2.5 w-full sm:w-auto lg:w-[316px] max-w-[90%] sm:max-w-none">
+                <span className="w-5 sm:w-7 h-px bg-slate-300/80 shrink-0" />
+                <span className="text-xs sm:text-[13px] font-normal italic text-slate-400 tracking-tight whitespace-nowrap opacity-75">
+                  powered by : Faris Izzi Asrori
+                </span>
+                <span className="w-5 sm:w-7 h-px bg-slate-300/80 shrink-0" />
+              </div>
             </div>
 
             {/* Dominant Primary CTA & Secondary Button */}
@@ -176,7 +187,10 @@ export function Hero() {
 
                 {/* Top Strip Header */}
                 <div className="flex items-center justify-between px-1 mb-1.5 text-[8px] font-bold text-rose-500 tracking-wider uppercase">
-                  <span>IZIAPHOTO</span>
+                  <div className="flex items-center gap-1">
+                    <img src="/logo-icon.png" alt="IziaPhoto" className="w-3.5 h-3.5 rounded-xs object-contain" />
+                    <span>IZIAPHOTO</span>
+                  </div>
                   <span>✨ 4-CUTS</span>
                 </div>
                 

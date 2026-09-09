@@ -55,3 +55,93 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* ==========================================================================
+   RESPONSIVE PHOTOBOOTH (TABLET & DESKTOP ENLARGEMENT ONLY)
+   DEFAULT CSS = Tampilan Mobile Lama (3:4 portrait, max-w-md 448px)
+   ========================================================================== */
+
+.camera-preview-box {
+  width: 100%;
+  max-width: 28rem; /* 448px (max-w-md) */
+  aspect-ratio: 3 / 4;
+  height: 60dvh;
+  max-height: 70dvh;
+}
+
+@media (min-width: 640px) {
+  .camera-preview-box {
+    height: 66dvh;
+  }
+}
+
+.photobooth-main-stage {
+  max-width: 28rem; /* 448px (max-w-md) */
+}
+
+.photobooth-tray-stage {
+  max-width: 28rem; /* 448px (max-w-md) */
+}
+
+.photobooth-capture-stage {
+  width: 100%;
+  max-width: 28rem; /* 448px (max-w-md) */
+}
+
+/* TABLET (768px - 1199px): Hanya perubahan tablet */
+@media (min-width: 768px) {
+  .camera-preview-box {
+    max-width: min(72vw, 640px);
+    aspect-ratio: 4 / 5;
+    height: 62dvh;
+    max-height: 65dvh;
+  }
+
+  .photobooth-main-stage {
+    max-width: 720px;
+  }
+
+  .photobooth-tray-stage {
+    max-width: 640px;
+  }
+
+  .photobooth-capture-stage {
+    max-width: 580px;
+  }
+}
+
+/* DESKTOP (>= 1200px): Hanya perubahan desktop */
+@media (min-width: 1200px) {
+  .camera-preview-box {
+    max-width: min(65vw, 960px);
+    aspect-ratio: 4 / 3;
+    height: 62dvh;
+    max-height: 66dvh;
+  }
+
+  .photobooth-main-stage {
+    max-width: 1020px;
+  }
+
+  .photobooth-tray-stage {
+    max-width: 800px;
+  }
+
+  .photobooth-capture-stage {
+    max-width: 640px;
+  }
+}
+
+/* LARGE DESKTOP (>= 1600px) */
+@media (min-width: 1600px) {
+  .camera-preview-box {
+    max-width: min(60vw, 1080px);
+    aspect-ratio: 4 / 3;
+    height: 64dvh;
+    max-height: 68dvh;
+  }
+
+  .photobooth-main-stage {
+    max-width: 1140px;
+  }
+}

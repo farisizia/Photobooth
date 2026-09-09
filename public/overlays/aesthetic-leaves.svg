@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
+  <defs>
+    <linearGradient id="eucalyptusGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ccfbf1" />
+      <stop offset="50%" stop-color="#5eead4" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="eucalyptusGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ecfdf5" />
+      <stop offset="50%" stop-color="#6ee7b7" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="warmLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#84cc16" />
+      <stop offset="100%" stop-color="#3f6212" />
+    </linearGradient>
+    <filter id="leafShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="1" dy="3" stdDeviation="2.5" flood-opacity="0.3" />
+    </filter>
+
+    <!-- Eucalyptus Leaf Symbol -->
+    <g id="eucalyptusLeaf">
+      <ellipse cx="0" cy="0" rx="14" ry="20" fill="url(#eucalyptusGrad1)" />
+      <path d="M 0 -20 L 0 20" stroke="#115e59" stroke-width="1" opacity="0.4" />
+    </g>
+
+    <!-- Monstera / Palm Leaf Silhouette Symbol -->
+    <g id="tropicalLeaf">
+      <path d="M 0 0 C -25 -30 -35 -70 0 -110 C 35 -70 25 -30 0 0" fill="url(#eucalyptusGrad2)" />
+      <path d="M 0 -110 L 0 0" stroke="#065f46" stroke-width="1.5" opacity="0.5" />
+      <!-- Cut notches -->
+      <line x1="0" y1="-75" x2="-18" y2="-85" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+      <line x1="0" y1="-75" x2="18" y2="-85" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+      <line x1="0" y1="-50" x2="-20" y2="-58" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+      <line x1="0" y1="-50" x2="20" y2="-58" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+      <line x1="0" y1="-25" x2="-16" y2="-30" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+      <line x1="0" y1="-25" x2="16" y2="-30" stroke="#065f46" stroke-width="1.2" opacity="0.4" />
+    </g>
+  </defs>
+
+  <!-- Top-Left Botanical Branch -->
+  <g transform="translate(10, 10)" filter="url(#leafShadow)">
+    <path d="M -15 -15 Q 60 50 140 70 Q 200 80 230 40" fill="none" stroke="#047857" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <use href="#eucalyptusLeaf" transform="translate(30, 20) scale(1.1) rotate(40)" />
+    <use href="#tropicalLeaf" transform="translate(60, 45) scale(0.65) rotate(20)" />
+    <use href="#eucalyptusLeaf" transform="translate(95, 60) scale(1.2) rotate(-20)" />
+    <use href="#eucalyptusLeaf" transform="translate(140, 70) scale(1.0) rotate(35)" />
+    <use href="#tropicalLeaf" transform="translate(180, 65) scale(0.55) rotate(50)" />
+    <use href="#eucalyptusLeaf" transform="translate(225, 45) scale(0.8) rotate(75)" />
+    <!-- Little hanging berries -->
+    <circle cx="75" cy="55" r="4" fill="#fbbf24" opacity="0.85" />
+    <circle cx="83" cy="62" r="3" fill="#fbbf24" opacity="0.85" />
+    <circle cx="155" cy="80" r="3.5" fill="#fbbf24" opacity="0.85" />
+  </g>
+
+  <!-- Top-Right Botanical Branch -->
+  <g transform="translate(590, 10)" filter="url(#leafShadow)">
+    <path d="M 15 -15 Q -60 45 -130 65 Q -190 75 -215 35" fill="none" stroke="#047857" stroke-width="3" stroke-linecap="round" opacity="0.75" />
+    <use href="#eucalyptusLeaf" transform="translate(-30, 20) scale(1.05) rotate(-35)" />
+    <use href="#tropicalLeaf" transform="translate(-65, 45) scale(0.6) rotate(-25)" />
+    <use href="#eucalyptusLeaf" transform="translate(-105, 60) scale(1.1) rotate(25)" />
+    <use href="#eucalyptusLeaf" transform="translate(-155, 68) scale(0.9) rotate(-40)" />
+    <use href="#eucalyptusLeaf" transform="translate(-205, 42) scale(0.75) rotate(-70)" />
+  </g>
+
+  <!-- Mid-Left Gentle Vine -->
+  <g transform="translate(0, 380)" filter="url(#leafShadow)">
+    <path d="M -5 -30 Q 35 10 30 60 Q 25 100 -5 120" fill="none" stroke="#065f46" stroke-width="2.5" stroke-linecap="round" opacity="0.6" />
+    <use href="#eucalyptusLeaf" transform="translate(20, 10) scale(0.8) rotate(55)" />
+    <use href="#eucalyptusLeaf" transform="translate(32, 50) scale(0.75) rotate(15)" />
+    <use href="#eucalyptusLeaf" transform="translate(22, 90) scale(0.7) rotate(-30)" />
+  </g>
+
+  <!-- Mid-Right Gentle Vine -->
+  <g transform="translate(600, 360)" filter="url(#leafShadow)">
+    <path d="M 5 -30 Q -35 15 -30 65 Q -25 110 5 130" fill="none" stroke="#065f46" stroke-width="2.5" stroke-linecap="round" opacity="0.6" />
+    <use href="#eucalyptusLeaf" transform="translate(-22, 10) scale(0.8) rotate(-55)" />
+    <use href="#eucalyptusLeaf" transform="translate(-32, 55) scale(0.75) rotate(-10)" />
+    <use href="#eucalyptusLeaf" transform="translate(-20, 95) scale(0.7) rotate(35)" />
+  </g>
+
+  <!-- Bottom-Left Lush Greenery Corner -->
+  <g transform="translate(0, 800)" filter="url(#leafShadow)">
+    <path d="M -15 15 Q 50 -40 120 -60 Q 180 -70 210 -35" fill="none" stroke="#047857" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <use href="#tropicalLeaf" transform="translate(45, -35) scale(0.75) rotate(-45)" />
+    <use href="#eucalyptusLeaf" transform="translate(90, -55) scale(1.15) rotate(30)" />
+    <use href="#tropicalLeaf" transform="translate(140, -65) scale(0.65) rotate(-20)" />
+    <use href="#eucalyptusLeaf" transform="translate(195, -45) scale(0.85) rotate(60)" />
+  </g>
+
+  <!-- Bottom-Right Lush Greenery Corner -->
+  <g transform="translate(600, 800)" filter="url(#leafShadow)">
+    <path d="M 15 15 Q -55 -45 -130 -65 Q -190 -75 -220 -35" fill="none" stroke="#047857" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <use href="#tropicalLeaf" transform="translate(-45, -35) scale(0.75) rotate(45)" />
+    <use href="#eucalyptusLeaf" transform="translate(-95, -55) scale(1.15) rotate(-30)" />
+    <use href="#tropicalLeaf" transform="translate(-150, -65) scale(0.65) rotate(20)" />
+    <use href="#eucalyptusLeaf" transform="translate(-205, -45) scale(0.85) rotate(-60)" />
+  </g>
+</svg>

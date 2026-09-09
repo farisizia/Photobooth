@@ -5,18 +5,12 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/70 transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-coral-500 via-rose-500 to-pink-500 flex items-center justify-center text-lg sm:text-xl shadow-md shadow-coral-500/20 group-hover:scale-105 transition-transform">
-            📸
-          </div>
-          <div>
-            <span className="font-display font-black text-base sm:text-lg tracking-tight text-slate-900 flex items-center">
-              IziaPhoto
-            </span>
-            <span className="block text-[9px] sm:text-[10px] font-bold tracking-wider text-rose-500 uppercase -mt-0.5">
-              LIVE PHOTOBOOTH
-            </span>
-          </div>
+        <Link to="/" className="flex items-center group py-1" aria-label="IziaPhoto Home">
+          <img
+            src="/logo-horizontal.png"
+            alt="IziaPhoto - Live Photobooth"
+            className="h-9 sm:h-11 w-auto object-contain group-hover:scale-[1.03] transition-transform"
+          />
         </Link>
 
         {/* Navigation Links (Desktop) */}
