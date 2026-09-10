@@ -1,0 +1,36 @@
+[debug] [2026-09-10T05:18:50.271Z] ----------------------------------------------------------------------
+[debug] [2026-09-10T05:18:50.281Z] Command:       /opt/homebrew/Cellar/node/25.1.0_1/bin/node /opt/homebrew/bin/firebase init hosting
+[debug] [2026-09-10T05:18:50.281Z] CLI Version:   15.30.0
+[debug] [2026-09-10T05:18:50.281Z] Platform:      darwin
+[debug] [2026-09-10T05:18:50.281Z] Node Version:  v25.1.0
+[debug] [2026-09-10T05:18:50.281Z] Detected Agent: unknown
+[debug] [2026-09-10T05:18:50.281Z] Time:          Thu Sep 10 2026 12:18:50 GMT+0700 (Western Indonesia Time)
+[debug] [2026-09-10T05:18:50.281Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/farisizia/Photobooth/Photobooth
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-09-10T05:18:51.480Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-10T05:18:51.480Z] > authorizing via signed-in user (farisiziaai@gmail.com)
+[debug] [2026-09-10T05:18:51.490Z] Checked if tokens are valid: true, expires at: 1789019808769
+[debug] [2026-09-10T05:18:51.490Z] Checked if tokens are valid: true, expires at: 1789019808769
+[debug] [2026-09-10T05:18:51.490Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/iziaphoto [none]
+[debug] [2026-09-10T05:18:52.143Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/iziaphoto 200
+[debug] [2026-09-10T05:18:52.143Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/iziaphoto {"projectId":"iziaphoto","projectNumber":"906411765091","displayName":"iziaphoto","name":"projects/iziaphoto","resources":{"hostingSite":"iziaphoto"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_100c0402-4019-4edc-99b8-bdbec5925cda"}
+[info] i  Using project iziaphoto (iziaphoto) . 
+[info] 
+=== Hosting Setup
