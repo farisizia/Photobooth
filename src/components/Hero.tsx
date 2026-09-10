@@ -119,7 +119,11 @@ export function Hero() {
               <div className="absolute inset-0 bg-gradient-to-tr from-pink-200/40 via-purple-150/40 to-sky-200/40 rounded-[3rem] blur-2xl -z-10" />
 
               {/* TIKET / FRAME 1: Vintage Newspaper Mockup (Tilted Left -6deg) */}
-              <div className="absolute left-2 sm:left-4 top-6 w-[210px] sm:w-[230px] bg-[#F5EFEB] border-2 border-[#1C1917] rounded-lg p-3 shadow-[0_20px_45px_rgba(15,23,42,0.16)] -rotate-6 hover:rotate-0 hover:z-20 hover:scale-105 transition-all duration-300 cursor-pointer">
+              <Link
+                to="/templates"
+                title="Pilih Template Koran Jadul"
+                className="absolute left-2 sm:left-4 top-6 w-[210px] sm:w-[230px] bg-[#F5EFEB] border-2 border-[#1C1917] rounded-lg p-3 shadow-[0_20px_45px_rgba(15,23,42,0.16)] -rotate-6 hover:rotate-0 hover:z-20 hover:scale-105 transition-all duration-300 cursor-pointer block"
+              >
                 {/* Washi tape accent on top */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-4 bg-amber-200/70 border-t border-b border-amber-300/80 backdrop-blur-xs shadow-xs rotate-1" />
 
@@ -178,10 +182,14 @@ export function Hero() {
                   <div>Citizens gathered to capture timeless memories in monochrome...</div>
                   <div className="border-l border-[#1C1917] pl-1">Archivists confirmed these smiles will last forever.</div>
                 </div>
-              </div>
+              </Link>
 
               {/* TIKET / FRAME 2: Korean 4-Cut Strip Pastel (Tilted Right +5deg, Higher Z-index) */}
-              <div className="absolute right-2 sm:right-4 top-2 w-[190px] sm:w-[205px] bg-white border border-rose-100 rounded-2xl p-2.5 shadow-[0_25px_50px_rgba(244,63,94,0.18)] rotate-5 hover:rotate-0 hover:z-30 hover:scale-105 transition-all duration-300 z-10 cursor-pointer">
+              <Link
+                to="/templates"
+                title="Pilih Template Korean 4-Cut"
+                className="absolute right-2 sm:right-4 top-2 w-[190px] sm:w-[205px] bg-white border border-rose-100 rounded-2xl p-2.5 shadow-[0_25px_50px_rgba(244,63,94,0.18)] rotate-5 hover:rotate-0 hover:z-30 hover:scale-105 transition-all duration-300 z-10 cursor-pointer block"
+              >
                 {/* Washi tape cute accent */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-14 h-4 bg-pink-300/80 border-t border-b border-pink-400/80 backdrop-blur-xs shadow-xs -rotate-2 rounded-xs" />
 
@@ -239,7 +247,7 @@ export function Hero() {
                     2026.09.09 • MEMORY STRIP
                   </div>
                 </div>
-              </div>
+              </Link>
 
               {/* FLOATING PILL BADGE: Template Count & Rating */}
               <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-30 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-xl shadow-slate-900/10 flex items-center gap-2 whitespace-nowrap">

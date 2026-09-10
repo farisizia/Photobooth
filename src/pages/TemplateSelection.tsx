@@ -1,13 +1,44 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { TEMPLATES, TEMPLATE_CATEGORIES, PhotoboothTemplate } from '../utils/templates';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  TEMPLATES,
+  TEMPLATE_CATEGORIES,
+  PhotoboothTemplate,
+} from '../utils/templates';
 import { getCapturedPhotos, clearCapturedPhotos } from '../utils/storage';
 import { TemplateCardMockup } from '../components/TemplateCardMockup';
+import { CustomBuilderModal } from '../components/CustomBuilderModal';
+import { Sparkles, Plus } from 'lucide-react';
 
 export function TemplateSelectionPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl || 'all');
   const [savedPhotos, setSavedPhotos] = useState<string[]>(() => getCapturedPhotos());
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+    }
+  }, [categoryFromUrl]);
+
+  const handleCategoryChange = (catId: string) => {
+    setSelectedCategory(catId);
+    if (catId === 'all') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', catId);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   const hasPhotos = savedPhotos.length > 0;
 
@@ -48,7 +79,7 @@ export function TemplateSelectionPage() {
               Izia<span className="text-violet-400">Photo</span>
             </span>
             <span className="block text-[8px] font-bold text-coral-400 tracking-widest uppercase mt-0.5">
-              {hasPhotos ? 'GANTI TEMPLATE' : 'PRESET VIRAL'}
+              {hasPhotos ? 'GANTI TEMPLATE' : 'Studio Preset'}
             </span>
           </div>
         </Link>
@@ -88,18 +119,73 @@ export function TemplateSelectionPage() {
         )}
 
         {/* Title Section */}
-        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-coral-400 glass-pill mb-3 uppercase">
-            Preset Photobooth Viral
+        <div className="text-center max-w-xl mx-auto mb-6 sm:mb-8">
+          <div className="inline-block px-3.5 py-1 rounded-full text-xs font-semibold tracking-wide text-coral-400 glass-pill mb-3">
+            Selamat Datang
           </div>
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
-            {hasPhotos ? 'Pilih Frame Baru' : 'Pilih Template Favoritmu'}
+            {hasPhotos ? 'Pilih Frame Baru' : 'Studio Photobooth IziaPhoto'}
           </h1>
           <p className="text-sm sm:text-base text-gray-300 mt-2">
             {hasPhotos
               ? 'Klik template mana saja, foto Anda akan langsung ditempelkan secara otomatis ke frame tersebut.'
-              : 'Pilih tema frame viral yang kamu inginkan. Sesi kamera akan otomatis mengambil foto sesuai jumlah slot.'}
+              : 'Pilih tema frame viral atau buat desain template Anda sendiri sesuai selera.'}
           </p>
+          <div className="flex items-center justify-center gap-2 mt-2.5 select-none">
+            <span className="w-6 h-px bg-white/15" />
+            <span className="text-xs sm:text-sm italic text-gray-400">
+              powered by : Faris Izzi Asrori
+            </span>
+            <span className="w-6 h-px bg-white/15" />
+          </div>
+        </div>
+
+        {/* HERO BANNER BUTTON: + Bikin Template Kustom Sendiri (Top Prominent Placement) */}
+        <div
+          onClick={() => setIsBuilderOpen(true)}
+          className="w-full max-w-4xl mx-auto mb-8 rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-coral-500/15 via-rose-500/20 to-purple-500/15 border-2 border-coral-500/40 hover:border-coral-400 hover:shadow-2xl hover:shadow-coral-500/20 transition-all duration-300 cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 group active:scale-[0.99] relative overflow-hidden"
+        >
+          {/* Subtle glow effect */}
+          <div className="absolute -right-12 -top-12 w-40 h-40 bg-coral-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-coral-500/20 transition-all" />
+
+          {/* Left: Icon & Text Info */}
+          <div className="flex items-center gap-4 text-left w-full sm:w-auto">
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-coral-500 to-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-coral-500/30 group-hover:scale-105 group-hover:rotate-3 transition-transform">
+              <Sparkles className="w-7 h-7 stroke-[2.2]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-coral-500 text-white uppercase tracking-wider shadow-xs">
+                  ✦ Custom Builder
+                </span>
+                <span className="text-xs font-semibold text-coral-300">
+                  7 Layout Dasar Bebas Kustom
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-display font-extrabold text-white group-hover:text-coral-300 transition-colors">
+                + Bikin Template Kustom Sendiri
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-300 mt-0.5 max-w-xl leading-relaxed">
+                Pilih layout strip Korea, 4R landscape & portrait, atau polaroid. Atur motif catur/border, warna latar, dan teks sesukamu!
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Prominent Action Button */}
+          <div className="w-full sm:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBuilderOpen(true);
+              }}
+              className="w-full sm:w-auto py-3 px-6 rounded-2xl text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 group-hover:opacity-95 shadow-lg shadow-coral-500/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap active:scale-95"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Mulai Bikin Template</span>
+              <span>→</span>
+            </button>
+          </div>
         </div>
 
         {/* Category Filter Pills */}
@@ -110,7 +196,7 @@ export function TemplateSelectionPage() {
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => handleCategoryChange(cat.id)}
                 className={`px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 active:scale-95 ${
                   isSelected
                     ? 'bg-gradient-to-r from-coral-500 to-rose-500 text-white shadow-lg shadow-coral-500/25 scale-105'
@@ -175,6 +261,12 @@ export function TemplateSelectionPage() {
           ))}
         </div>
       </main>
+
+      {/* In-App Custom Template Builder Modal */}
+      <CustomBuilderModal
+        isOpen={isBuilderOpen}
+        onClose={() => setIsBuilderOpen(false)}
+      />
     </div>
   );
 }

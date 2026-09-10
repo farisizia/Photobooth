@@ -1,4 +1,10 @@
 import { PhotoboothTemplate } from './templates';
+import {
+  getActiveBuilderConfig,
+  CustomBaseLayout,
+  FrameMotif,
+  getContrastColors,
+} from './customBuilder';
 
 export interface FrameColor {
   id: string;
@@ -196,9 +202,10 @@ const drawCheckerboardBorder = (
   width: number,
   height: number,
   borderWidth = 24,
-  squareSize = 12
+  squareSize = 12,
+  color = '#000000'
 ) => {
-  ctx.fillStyle = '#000000';
+  ctx.fillStyle = color;
 
   // Top and bottom borders
   for (let y = 0; y < borderWidth; y += squareSize) {
@@ -235,14 +242,42 @@ const drawCheckerboardBorder = (
 /**
  * Renders photos into the selected viral template on high-DPI HTML Canvas
  */
+export type FontStyleOption = 'sans' | 'serif' | 'mono' | 'cursive' | 'display';
+export type TextColorOption = 'auto' | '#FFFFFF' | '#111111' | string;
+
+export interface CustomEditorOptions {
+  filter?: string;
+  overlayUrl?: string | null;
+  customTexts?: {
+    header?: string;
+    subhead?: string;
+    footer?: string;
+  };
+  customBgColor?: string;
+  customTextColor?: TextColorOption;
+  fontStyle?: FontStyleOption;
+  motif?: FrameMotif;
+  cornerRadius?: number;
+  photoGap?: number;
+}
+
+const resolveFont = (style: FontStyleOption | undefined, fallback: string): string => {
+  if (style === 'serif') return '"Playfair Display", "Cinzel", "Georgia", serif';
+  if (style === 'mono') return '"Space Mono", "Courier New", monospace';
+  if (style === 'cursive') return '"Caveat", "Brush Script MT", cursive, sans-serif';
+  if (style === 'display') return '"Impact", "Arial Black", "Space Grotesk", sans-serif';
+  if (style === 'sans') return '"Plus Jakarta Sans", "Space Grotesk", sans-serif';
+  return fallback;
+};
+
+/**
+ * Renders photos into the selected viral template on high-DPI HTML Canvas
+ */
 export async function renderPhotoboothCanvas(
   photos: string[],
   template: PhotoboothTemplate,
-  colorOverride?: FrameColor,
-  options?: {
-    filter?: string;
-    overlayUrl?: string | null;
-  }
+  colorOverride?: FrameColor | { bg?: string; text?: string; border?: string; id?: string },
+  options?: CustomEditorOptions
 ): Promise<HTMLCanvasElement> {
   if (photos.length === 0) throw new Error('Tidak ada foto untuk dirender.');
 
@@ -264,9 +299,22 @@ export async function renderPhotoboothCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context unavailable');
 
-  const bgColor = colorOverride?.bg || template.theme.bg;
-  const textColor = colorOverride?.text || template.theme.text;
+  const bgColor = options?.customBgColor || colorOverride?.bg || template.theme.bg;
   const borderColor = colorOverride?.border || template.theme.border;
+
+  // Resolve custom text color with dynamic contrast based on background luminance
+  const dynamicGlobalContrast = getContrastColors(bgColor, options?.customTextColor);
+  const effectiveTextColor = dynamicGlobalContrast.primaryText;
+  const textColor =
+    options?.customTextColor && options.customTextColor !== 'auto'
+      ? options.customTextColor
+      : options?.customBgColor
+      ? dynamicGlobalContrast.primaryText
+      : colorOverride?.text || template.theme.text || dynamicGlobalContrast.primaryText;
+
+  const customHeader = options?.customTexts?.header || template.customTexts?.header;
+  const customSubhead = options?.customTexts?.subhead || template.customTexts?.subhead;
+  const customFooter = options?.customTexts?.footer || template.customTexts?.footer;
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('id-ID', {
@@ -276,9 +324,284 @@ export async function renderPhotoboothCanvas(
   }).toUpperCase();
 
   // =========================================================================
+  // -1. IN-APP CUSTOM TEMPLATE BUILDER (6 BASE LAYOUTS + MOTIFS + CUSTOM STYLES)
+  // =========================================================================
+  if (template.layoutType === 'custom-builder' || template.id === 'custom-builder') {
+    const builderCfg = getActiveBuilderConfig();
+    const layoutBase: CustomBaseLayout =
+      (template as any).builderConfig?.layoutBase || builderCfg.layoutBase || 'strip-4';
+    const motif: FrameMotif =
+      options?.motif || (template as any).builderConfig?.motif || builderCfg.motif || 'plain';
+    const radius =
+      options?.cornerRadius !== undefined
+        ? options.cornerRadius
+        : (template as any).builderConfig?.cornerRadius ?? builderCfg.cornerRadius ?? 8;
+    const gapVal =
+      options?.photoGap !== undefined
+        ? options.photoGap
+        : (template as any).builderConfig?.photoGap ?? builderCfg.photoGap ?? 16;
+    const fontOpt =
+      options?.fontStyle || (template as any).builderConfig?.fontStyle || builderCfg.fontStyle || 'sans';
+    const activeFont = resolveFont(fontOpt, '"Plus Jakarta Sans", "Space Grotesk", sans-serif');
+
+    const headerText = customHeader || builderCfg.name || 'Our Special Moments';
+    const subheadText = customSubhead || builderCfg.subtitle || 'PHOTOBOOTH MEMORIES • 2026';
+    const footerText = customFooter || builderCfg.footer || 'IZIAPHOTO STUDIO';
+
+    let width = 640;
+    let height = 1920;
+    const slots: { x: number; y: number; w: number; h: number }[] = [];
+
+    if (layoutBase === 'strip-3') {
+      width = 600;
+      height = 1800;
+      const headerH = 110;
+      const footerH = 130;
+      const innerH = height - headerH - footerH;
+      const gap = Math.round(gapVal * 1.3);
+      const padX = Math.max(28, Math.round(gapVal * 1.5));
+      const photoW = width - padX * 2;
+      const photoH = Math.round((innerH - 2 * gap) / 3);
+
+      for (let i = 0; i < 3; i++) {
+        slots.push({
+          x: padX,
+          y: headerH + i * (photoH + gap),
+          w: photoW,
+          h: photoH,
+        });
+      }
+    } else if (layoutBase === 'strip-4') {
+      width = 640;
+      height = 1920;
+      const headerH = 110;
+      const footerH = 140;
+      const innerH = height - headerH - footerH;
+      const gap = Math.round(gapVal * 1.2);
+      const padX = Math.max(30, Math.round(gapVal * 1.5));
+      const photoW = width - padX * 2;
+      const photoH = Math.round((innerH - 3 * gap) / 4);
+
+      for (let i = 0; i < 4; i++) {
+        slots.push({
+          x: padX,
+          y: headerH + i * (photoH + gap),
+          w: photoW,
+          h: photoH,
+        });
+      }
+    } else if (layoutBase === '4r-grid4') {
+      width = 1800;
+      height = 1200;
+      const headerH = 100;
+      const footerH = 110;
+      const padX = Math.max(50, Math.round(gapVal * 2.5));
+      const gap = Math.max(20, Math.round(gapVal * 1.4));
+      const innerW = width - padX * 2;
+      const innerH = height - headerH - footerH;
+      const cellW = Math.round((innerW - gap) / 2);
+      const cellH = Math.round((innerH - gap) / 2);
+
+      slots.push({ x: padX, y: headerH, w: cellW, h: cellH });
+      slots.push({ x: padX + cellW + gap, y: headerH, w: cellW, h: cellH });
+      slots.push({ x: padX, y: headerH + cellH + gap, w: cellW, h: cellH });
+      slots.push({ x: padX + cellW + gap, y: headerH + cellH + gap, w: cellW, h: cellH });
+    } else if (layoutBase === '4r-col3') {
+      width = 1800;
+      height = 1200;
+      const headerH = 100;
+      const footerH = 110;
+      const padX = Math.max(50, Math.round(gapVal * 2.5));
+      const gap = Math.max(22, Math.round(gapVal * 1.5));
+      const innerW = width - padX * 2;
+      const innerH = height - headerH - footerH;
+      const colW = Math.round((innerW - 2 * gap) / 3);
+
+      for (let i = 0; i < 3; i++) {
+        slots.push({
+          x: padX + i * (colW + gap),
+          y: headerH,
+          w: colW,
+          h: innerH,
+        });
+      }
+    } else if (layoutBase === '4r-split3') {
+      width = 1800;
+      height = 1200;
+      const headerH = 95;
+      const footerH = 105;
+      const padX = Math.max(50, Math.round(gapVal * 2.5));
+      const gap = Math.max(20, Math.round(gapVal * 1.4));
+      const innerW = width - padX * 2;
+      const innerH = height - headerH - footerH;
+      const topH = Math.round((innerH - gap) * 0.48);
+      const bottomH = innerH - gap - topH;
+      const topCellW = Math.round((innerW - gap) / 2);
+
+      slots.push({ x: padX, y: headerH, w: topCellW, h: topH });
+      slots.push({ x: padX + topCellW + gap, y: headerH, w: topCellW, h: topH });
+      slots.push({ x: padX, y: headerH + topH + gap, w: innerW, h: bottomH });
+    } else if (layoutBase === '4r-portrait-grid4') {
+      width = 1200;
+      height = 1800;
+      const headerH = 100;
+      const footerH = 120;
+      const padX = Math.max(50, Math.round(gapVal * 2.2));
+      const gap = Math.max(20, Math.round(gapVal * 1.3));
+      const innerW = width - padX * 2;
+      const innerH = height - headerH - footerH;
+      const cellW = Math.round((innerW - gap) / 2);
+      const cellH = Math.round((innerH - gap) / 2);
+
+      slots.push({ x: padX, y: headerH, w: cellW, h: cellH });
+      slots.push({ x: padX + cellW + gap, y: headerH, w: cellW, h: cellH });
+      slots.push({ x: padX, y: headerH + cellH + gap, w: cellW, h: cellH });
+      slots.push({ x: padX + cellW + gap, y: headerH + cellH + gap, w: cellW, h: cellH });
+    } else if (layoutBase === 'polaroid-1') {
+      width = 1200;
+      height = 1600;
+      const padX = Math.max(70, Math.round(gapVal * 2.8));
+      const padTop = Math.max(80, Math.round(gapVal * 2.8));
+      const bottomMargin = 310;
+      const photoW = width - padX * 2;
+      const photoH = height - padTop - bottomMargin;
+
+      slots.push({ x: padX, y: padTop, w: photoW, h: photoH });
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // 1. Frame Background
+    ctx.fillStyle = bgColor || '#FAF8F5';
+    ctx.fillRect(0, 0, width, height);
+
+    const isWide = width >= 1200;
+
+    // 2. Motif
+    if (motif === 'checkerboard') {
+      drawCheckerboardBorder(
+        ctx,
+        width,
+        height,
+        isWide ? 36 : 24,
+        isWide ? 18 : 12,
+        effectiveTextColor === '#FFFFFF' ? '#FFFFFF' : '#000000'
+      );
+    } else if (motif === 'double-border') {
+      const outInset = isWide ? 22 : 12;
+      const inInset = isWide ? 34 : 20;
+      ctx.strokeStyle = effectiveTextColor;
+      ctx.lineWidth = isWide ? 4 : 2.5;
+      ctx.strokeRect(outInset, outInset, width - outInset * 2, height - outInset * 2);
+      ctx.lineWidth = isWide ? 2 : 1.5;
+      ctx.strokeRect(inInset, inInset, width - inInset * 2, height - inInset * 2);
+    }
+
+    // 3. Draw Photos
+    const scaledRadius = Math.round(radius * (width / 600));
+    slots.forEach((slot, i) => {
+      if (images[i]) {
+        drawCoverImage(ctx, images[i], slot.x, slot.y, slot.w, slot.h, scaledRadius, activeFilter, overlayImg);
+      }
+    });
+
+    // 4. Helper to draw locked 3-part footer branding (Locked IziaPhoto + Format/Note + Date)
+    const drawLockedBrandingFooter = (centerLabel: string) => {
+      const isLarge = width >= 1200;
+      const footerY = height - (isLarge ? 50 : 56);
+      const padX = isLarge ? 60 : (width >= 1000 ? 50 : 32);
+
+      // Divider line
+      ctx.strokeStyle = dynamicGlobalContrast.divider;
+      ctx.lineWidth = isLarge ? 2 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(padX, footerY - (isLarge ? 38 : 30));
+      ctx.lineTo(width - padX, footerY - (isLarge ? 38 : 30));
+      ctx.stroke();
+
+      // Left: Locked IziaPhoto Logo (Permanent)
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      const logoSize = isLarge ? 28 : (width >= 1000 ? 24 : 18);
+      ctx.font = `bold ${logoSize}px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = dynamicGlobalContrast.primaryText;
+      ctx.fillText('Izia', padX, footerY);
+      const iziaW = ctx.measureText('Izia').width;
+      ctx.fillStyle = dynamicGlobalContrast.photoAccent; // High-contrast Coral / Rose
+      ctx.fillText('Photo', padX + iziaW, footerY);
+
+      // Center: Format / Description / Note
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = dynamicGlobalContrast.secondaryText;
+      const centerSize = isLarge ? 17 : (width >= 1000 ? 15 : 11);
+      ctx.font = `600 ${centerSize}px monospace`;
+      ctx.letterSpacing = '2px';
+      ctx.fillText(centerLabel, width / 2, footerY);
+      ctx.letterSpacing = '0px';
+
+      // Right: Locked Date
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = dynamicGlobalContrast.secondaryText;
+      const dateSize = isLarge ? 16 : (width >= 1000 ? 14 : 10);
+      ctx.font = `600 ${dateSize}px monospace`;
+      ctx.fillText(dateStr, width - padX, footerY);
+    };
+
+    // 5. Texts & Typography
+    ctx.fillStyle = dynamicGlobalContrast.primaryText;
+    ctx.textAlign = 'center';
+
+    if (layoutBase === 'polaroid-1') {
+      // Polaroid texts
+      ctx.font = `bold ${Math.round(width * 0.032)}px ${activeFont}`;
+      ctx.letterSpacing = '1px';
+      ctx.fillText(headerText, width / 2, height - 195);
+
+      ctx.font = `600 ${Math.round(width * 0.018)}px ${activeFont}`;
+      ctx.letterSpacing = '3px';
+      ctx.fillText(subheadText, width / 2, height - 145);
+
+      drawLockedBrandingFooter(footerText || 'POLAROID PRINT');
+    } else if (layoutBase.startsWith('4r-')) {
+      // 4R Header & Locked Footer
+      ctx.font = `bold ${width >= 1800 ? '30px' : '26px'} ${activeFont}`;
+      ctx.letterSpacing = '2px';
+      ctx.fillText(headerText, width / 2, 48);
+
+      ctx.font = `600 ${width >= 1800 ? '16px' : '14px'} ${activeFont}`;
+      ctx.letterSpacing = '3px';
+      ctx.fillText(subheadText, width / 2, 76);
+
+      const defaultLabel =
+        layoutBase === '4r-portrait-grid4'
+          ? '4-GRID • 4R PRINT'
+          : layoutBase === '4r-grid4'
+          ? '4-GRID • 4R PRINT'
+          : layoutBase === '4r-col3'
+          ? '3-COLUMN • 4R PRINT'
+          : '4R PHOTOBOOTH';
+      drawLockedBrandingFooter(footerText || defaultLabel);
+    } else {
+      // Strip 3 & Strip 4 Header & Locked Footer
+      ctx.font = `bold 22px ${activeFont}`;
+      ctx.letterSpacing = '2px';
+      ctx.fillText(headerText, width / 2, 52);
+
+      ctx.font = `600 13px ${activeFont}`;
+      ctx.letterSpacing = '3px';
+      ctx.fillText(subheadText, width / 2, 80);
+
+      drawLockedBrandingFooter(footerText || 'KOREAN PHOTOBOOTH');
+    }
+  }
+
+  // =========================================================================
   // 0. KOREAN WIDE 2-CUT (2 Slots Wide Landscape Stacked)
   // =========================================================================
-  if (template.layoutType === 'korean-wide') {
+  else if (template.layoutType === 'korean-wide') {
     const width = 800;
     const padding = 44;
     const gap = 24;
@@ -301,11 +624,11 @@ export async function renderPhotoboothCanvas(
     }
 
     // Header
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = effectiveTextColor;
     ctx.textAlign = 'center';
-    ctx.font = 'bold 22px "Space Grotesk", sans-serif';
+    ctx.font = `bold 22px ${resolveFont(options?.fontStyle, '"Space Grotesk", sans-serif')}`;
     ctx.letterSpacing = '5px';
-    ctx.fillText('✦ KOREAN WIDE CUT • 2-SHOTS ✦', width / 2, 52);
+    ctx.fillText(customHeader || '✦ KOREAN WIDE CUT • 2-SHOTS ✦', width / 2, 52);
 
     // Photos
     images.forEach((img, i) => {
@@ -325,11 +648,11 @@ export async function renderPhotoboothCanvas(
 
     // Footer
     const footerY = height - 42;
-    ctx.fillStyle = textColor;
+    ctx.fillStyle = effectiveTextColor;
     ctx.textAlign = 'center';
-    ctx.font = '600 15px "Plus Jakarta Sans", sans-serif';
+    ctx.font = `600 15px ${resolveFont(options?.fontStyle, '"Plus Jakarta Sans", sans-serif')}`;
     ctx.letterSpacing = '3px';
-    ctx.fillText(`SWEET MEMORIES WITH BESTIES • ${dateStr} • IZIAPHOTO`, width / 2, footerY);
+    ctx.fillText(customFooter || `SWEET MEMORIES WITH BESTIES • ${dateStr} • IZIAPHOTO`, width / 2, footerY);
   }
 
   // =========================================================================
@@ -368,9 +691,9 @@ export async function renderPhotoboothCanvas(
     ctx.fillText('★ SPECIAL HISTORIC EDITION • DAILY CHRONICLE ★', width / 2, 44);
 
     // Grand Newspaper Masthead
-    ctx.font = '900 56px "Space Grotesk", serif';
-    ctx.letterSpacing = '4px';
-    ctx.fillText('THE VINTAGE GAZETTE', width / 2, 100);
+    ctx.font = '900 64px "Space Grotesk", serif';
+    ctx.letterSpacing = '6px';
+    ctx.fillText(customHeader || 'BREAKING NEWS', width / 2, 102);
 
     // Issue Meta Bar between two decorative lines
     ctx.beginPath();
@@ -384,16 +707,16 @@ export async function renderPhotoboothCanvas(
 
     ctx.font = '600 11px monospace';
     ctx.letterSpacing = '2px';
-    ctx.fillText(`VOL. XXIV NO. 9 • PRICE TWO CENTS • ${dateStr} • SPECIAL PHOTO ISSUE`, width / 2, 133);
+    ctx.fillText(`VOL. XXIV NO. 9 • BREAKING EDITION • ${dateStr} • SPECIAL PHOTO ISSUE`, width / 2, 133);
 
     // Giant Headline
     ctx.font = '900 24px "Space Grotesk", serif';
     ctx.letterSpacing = '2px';
-    ctx.fillText('BREAKING NEWS: MOMENTS OF PURE JOY RECORDED TODAY', width / 2, 178);
+    ctx.fillText(customSubhead || 'SPECIAL REPORT: MOMENTS OF PURE JOY RECORDED LIVE', width / 2, 178);
 
     ctx.font = 'italic 13px "Plus Jakarta Sans", serif';
     ctx.letterSpacing = '0.5px';
-    ctx.fillText('Photobooth cameras capture spontaneous smiles and historic memories across the nation', width / 2, 202);
+    ctx.fillText('Photobooth cameras capture spontaneous smiles and historic memories live across the city', width / 2, 202);
 
     // Thin separator before photos
     ctx.beginPath();
@@ -475,9 +798,9 @@ export async function renderPhotoboothCanvas(
     ctx.stroke();
 
     ctx.textAlign = 'center';
-    ctx.font = 'bold 11px "Space Grotesk", sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText('THE VINTAGE CHRONICLE • ALL ARCHIVES ARE VERIFIED & TIMELESS • 2026', width / 2, footerY);
+    ctx.font = '900 13px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(customFooter || 'IZIAPHOTO SPECIAL EDITION • 2026', width / 2, footerY);
   }
 
   // =========================================================================
@@ -624,7 +947,7 @@ export async function renderPhotoboothCanvas(
     ctx.textAlign = 'center';
     ctx.font = 'bold 20px "Space Grotesk", sans-serif';
     ctx.letterSpacing = '5px';
-    ctx.fillText('✦ 인생네컷 • IZIAPHOTO ✦', width / 2, headerHeight / 2 + 8);
+    ctx.fillText(customHeader || '✦ 인생네컷 • IZIAPHOTO ✦', width / 2, headerHeight / 2 + 8);
 
     // Photos
     images.forEach((img, i) => {
@@ -638,11 +961,14 @@ export async function renderPhotoboothCanvas(
     ctx.textAlign = 'center';
     ctx.font = 'bold 24px "Space Grotesk", sans-serif';
     ctx.letterSpacing = '6px';
-    ctx.fillText('KOREAN PHOTOBOOTH', width / 2, footerCenterY - 14);
-
-    ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
-    ctx.letterSpacing = '4px';
-    ctx.fillText(`2026 • ${dateStr}`, width / 2, footerCenterY + 16);
+    if (customFooter) {
+      ctx.fillText(customFooter, width / 2, footerCenterY);
+    } else {
+      ctx.fillText('KOREAN PHOTOBOOTH', width / 2, footerCenterY - 14);
+      ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
+      ctx.letterSpacing = '4px';
+      ctx.fillText(`2026 • ${dateStr}`, width / 2, footerCenterY + 16);
+    }
   }
 
   // =========================================================================
@@ -1275,6 +1601,264 @@ export async function renderPhotoboothCanvas(
     ctx.textAlign = 'center';
     ctx.font = 'bold 11px monospace';
     ctx.fillText(`||| TICKET #8849-2026 • DATE: ${dateStr} |||`, width / 2, barcodeY + 54);
+  }
+
+  // =========================================================================
+  // 14. 4R / 4x6 PRINT TEMPLATES (Black & White Contrast Frames)
+  // =========================================================================
+  else if (template.category === '4r-print' || template.layoutType.startsWith('4r-')) {
+    const isPortrait =
+      template.layoutType === '4r-portrait-polaroid' ||
+      template.layoutType === '4r-portrait-cut2' ||
+      template.layoutType === '4r-portrait-grid4';
+    const width = isPortrait ? 1200 : 1800;
+    const height = isPortrait ? 1800 : 1200;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const bg = bgColor || '#0A0A0A';
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+
+    const dynamic4RContrast = getContrastColors(bg, options?.customTextColor);
+    const frameBorderColor =
+      borderColor && borderColor !== '#FFFFFF'
+        ? borderColor
+        : dynamic4RContrast.photoBorder;
+
+    // Helper to draw the IziaPhoto branding on footer with dynamic contrast
+    const drawFooterBranding = (centerSubtext: string) => {
+      const footerY = height - 55;
+      const lineY = height - 100;
+
+      // Divider line
+      ctx.strokeStyle = dynamic4RContrast.divider;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(60, lineY);
+      ctx.lineTo(width - 60, lineY);
+      ctx.stroke();
+
+      // Left: IziaPhoto logo
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 30px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = dynamic4RContrast.primaryText;
+      ctx.fillText('Izia', 60, footerY);
+      const iziaWidth = ctx.measureText('Izia').width;
+      ctx.fillStyle = dynamic4RContrast.photoAccent; // High-contrast coral / rose
+      ctx.fillText('Photo', 60 + iziaWidth, footerY);
+
+      // Center: Subtext (customFooter if given, otherwise centerSubtext)
+      ctx.textAlign = 'center';
+      ctx.fillStyle = dynamic4RContrast.secondaryText;
+      ctx.font = '600 18px monospace';
+      ctx.letterSpacing = '3px';
+      ctx.fillText(customFooter || centerSubtext, width / 2, footerY);
+      ctx.letterSpacing = '0px';
+
+      // Right: Date
+      ctx.textAlign = 'right';
+      ctx.fillStyle = dynamic4RContrast.secondaryText;
+      ctx.font = '16px monospace';
+      ctx.fillText(dateStr, width - 60, footerY);
+    };
+
+    // Minimalist Top Header for 4R Frames when customHeader (Judul Utama) or customSubhead is provided
+    const hasTopHeader = Boolean(customHeader || customSubhead);
+    const topPad = hasTopHeader ? (isPortrait ? 115 : 100) : (isPortrait ? 70 : 60);
+    const padding = isPortrait ? 70 : 60;
+    const footerHeight = 110;
+    const gap = 20;
+
+    if (hasTopHeader) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const fontFam =
+        options?.fontStyle === 'serif'
+          ? 'Playfair Display, serif'
+          : options?.fontStyle === 'mono'
+          ? 'monospace'
+          : options?.fontStyle === 'cursive'
+          ? 'Brush Script MT, cursive'
+          : options?.fontStyle === 'display'
+          ? 'Outfit, sans-serif'
+          : '"Plus Jakarta Sans", sans-serif';
+
+      if (customHeader) {
+        ctx.fillStyle = dynamic4RContrast.primaryText;
+        ctx.font = `bold ${isPortrait ? '32px' : '28px'} ${fontFam}`;
+        ctx.letterSpacing = '2px';
+        ctx.fillText(customHeader, width / 2, customSubhead ? (isPortrait ? 48 : 42) : (isPortrait ? 60 : 52));
+        ctx.letterSpacing = '0px';
+      }
+
+      if (customSubhead) {
+        ctx.fillStyle = dynamic4RContrast.secondaryText;
+        ctx.font = `600 ${isPortrait ? '16px' : '15px'} monospace`;
+        ctx.letterSpacing = '3px';
+        ctx.fillText(customSubhead, width / 2, isPortrait ? 84 : 74);
+        ctx.letterSpacing = '0px';
+      }
+    }
+
+    const gridY = topPad;
+    const gridH = height - gridY - footerHeight;
+    const gridW = width - padding * 2;
+
+    if (template.layoutType === '4r-landscape-single') {
+      drawCoverImage(ctx, images[0], padding, gridY, gridW, gridH, 4, activeFilter, overlayImg);
+      ctx.strokeStyle = frameBorderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(padding, gridY, gridW, gridH);
+
+      drawFooterBranding('4R PHOTOBOOTH');
+    } else if (template.layoutType === '4r-landscape-grid4') {
+      const cellW = (gridW - gap) / 2;
+      const cellH = (gridH - gap) / 2;
+
+      for (let i = 0; i < 4; i++) {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = padding + col * (cellW + gap);
+        const y = gridY + row * (cellH + gap);
+
+        drawCoverImage(ctx, images[i], x, y, cellW, cellH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, cellW, cellH);
+      }
+
+      drawFooterBranding('4-GRID • 4R PRINT');
+    } else if (template.layoutType === '4r-landscape-col3') {
+      const colW = (gridW - 2 * gap) / 3;
+      const colH = gridH;
+
+      for (let i = 0; i < 3; i++) {
+        const x = padding + i * (colW + gap);
+        const y = gridY;
+
+        drawCoverImage(ctx, images[i], x, y, colW, colH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, colW, colH);
+      }
+
+      drawFooterBranding('3-COLUMN • 4R PRINT');
+    } else if (template.layoutType === '4r-landscape-split3') {
+      const rowH = (gridH - gap) / 2;
+      const topCellW = (gridW - gap) / 2;
+
+      // Top row 2 photos
+      for (let i = 0; i < 2; i++) {
+        const x = padding + i * (topCellW + gap);
+        const y = gridY;
+        drawCoverImage(ctx, images[i], x, y, topCellW, rowH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, topCellW, rowH);
+      }
+
+      // Bottom row 1 wide photo
+      const bottomY = gridY + rowH + gap;
+      drawCoverImage(ctx, images[2], padding, bottomY, gridW, rowH, 4, activeFilter, overlayImg);
+      ctx.strokeStyle = frameBorderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(padding, bottomY, gridW, rowH);
+
+      drawFooterBranding('SPLIT ASYMMETRIC • 4R');
+    } else if (template.layoutType === '4r-landscape-asym4') {
+      const topH = Math.round(gridH * 0.54);
+      const botH = gridH - topH - gap;
+      const botW = (gridW - 2 * gap) / 3;
+
+      // Top medium photo
+      drawCoverImage(ctx, images[0], padding, gridY, gridW, topH, 4, activeFilter, overlayImg);
+      ctx.strokeStyle = frameBorderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(padding, gridY, gridW, topH);
+
+      // Bottom 3 mini photos
+      const botY = gridY + topH + gap;
+      for (let i = 0; i < 3; i++) {
+        const x = padding + i * (botW + gap);
+        drawCoverImage(ctx, images[i + 1], x, botY, botW, botH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, botY, botW, botH);
+      }
+
+      drawFooterBranding('1+3 ASYMMETRIC • 4R');
+    } else if (template.layoutType === '4r-portrait-polaroid') {
+      const bottomArea = 250;
+      const photoX = padding;
+      const photoY = gridY;
+      const photoW = gridW;
+      const photoH = height - gridY - bottomArea;
+
+      drawCoverImage(ctx, images[0], photoX, photoY, photoW, photoH, 4, activeFilter, overlayImg);
+      ctx.strokeStyle = frameBorderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(photoX, photoY, photoW, photoH);
+
+      // Bottom Branding (polaroid style)
+      const centerY = height - bottomArea / 2 + 10;
+
+      // Centered IziaPhoto logo
+      ctx.font = 'bold 44px "Plus Jakarta Sans", sans-serif';
+      const iziaPart = 'Izia';
+      const photoPart = 'Photo';
+      const iziaW = ctx.measureText(iziaPart).width;
+      const photoWBrand = ctx.measureText(photoPart).width;
+      const totalBrandW = iziaW + photoWBrand;
+      const startX = width / 2 - totalBrandW / 2;
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = dynamic4RContrast.primaryText;
+      ctx.fillText(iziaPart, startX, centerY - 24);
+      ctx.fillStyle = dynamic4RContrast.photoAccent;
+      ctx.fillText(photoPart, startX + iziaW, centerY - 24);
+
+      // Subtext
+      ctx.textAlign = 'center';
+      ctx.fillStyle = dynamic4RContrast.secondaryText;
+      ctx.font = '600 20px monospace';
+      ctx.letterSpacing = '4px';
+      ctx.fillText(customFooter || `4R PHOTOBOOTH • ${dateStr}`, width / 2, centerY + 28);
+      ctx.letterSpacing = '0px';
+    } else if (template.layoutType === '4r-portrait-cut2') {
+      const photoH = (gridH - gap) / 2;
+
+      for (let i = 0; i < 2; i++) {
+        const y = gridY + i * (photoH + gap);
+        drawCoverImage(ctx, images[i], padding, y, gridW, photoH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(padding, y, gridW, photoH);
+      }
+
+      drawFooterBranding('2-CUT • 4R PRINT');
+    } else if (template.layoutType === '4r-portrait-grid4') {
+      const cellW = (gridW - gap) / 2;
+      const cellH = (gridH - gap) / 2;
+
+      for (let i = 0; i < 4; i++) {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const x = padding + col * (cellW + gap);
+        const y = gridY + row * (cellH + gap);
+
+        drawCoverImage(ctx, images[i], x, y, cellW, cellH, 4, activeFilter, overlayImg);
+        ctx.strokeStyle = frameBorderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, cellW, cellH);
+      }
+
+      drawFooterBranding('4-GRID • 4R PRINT');
+    }
   }
 
   return canvas;

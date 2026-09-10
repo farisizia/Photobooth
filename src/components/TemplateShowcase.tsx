@@ -339,6 +339,7 @@ export function TemplateShowcase() {
   const vibes = [
     {
       id: 'korean-4cut',
+      templateId: 'korean-4cut-classic',
       name: 'Korean 4-Cut 🇰🇷',
       tagline: 'Seoul Aesthetic Vibe',
       badge: 'Paling Viral 🔥',
@@ -350,6 +351,7 @@ export function TemplateShowcase() {
     },
     {
       id: 'vintage-newspaper',
+      templateId: 'vintage-chronicle',
       name: 'Koran Jadul 📰',
       tagline: 'Daily Historic Edition',
       badge: 'Filter B&W Otomatis ✨',
@@ -361,6 +363,7 @@ export function TemplateShowcase() {
     },
     {
       id: 'black-and-white',
+      templateId: 'classic-polaroid',
       name: 'Black & White 🖤',
       tagline: 'Timeless Monochrome',
       badge: 'Classic Mood 🕶️',
@@ -372,6 +375,7 @@ export function TemplateShowcase() {
     },
     {
       id: 'retro-film',
+      templateId: 'analog-film-35mm',
       name: '35mm Film 🎞️',
       tagline: 'Analog Roll Negative',
       badge: 'Vintage Kodacolor 📷',
@@ -383,6 +387,7 @@ export function TemplateShowcase() {
     },
     {
       id: 'cute-pink',
+      templateId: 'kawaii-sticker-bomb',
       name: 'Cute & Pink 💗',
       tagline: 'Sweet Mascot Cutout',
       badge: 'Super Gemas 🍓',
@@ -394,6 +399,7 @@ export function TemplateShowcase() {
     },
     {
       id: 'receipt',
+      templateId: 'thermal-receipt',
       name: 'Receipt / Struk 🧾',
       tagline: 'Cafe & Mart Thermal',
       badge: 'Unik & Trendy ☕',
@@ -428,8 +434,7 @@ export function TemplateShowcase() {
         {/* Big Aesthetic Template Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12">
           {vibes.map((item) => (
-            <Link
-              to="/templates"
+            <div
               key={item.id}
               className={`group relative rounded-3xl p-5 sm:p-6 border transition-all duration-300 shadow-xs hover:shadow-xl hover:-translate-y-1.5 flex flex-col justify-between ${item.bgCard} ${item.borderCard}`}
             >
@@ -475,11 +480,15 @@ export function TemplateShowcase() {
                   ))}
                 </div>
 
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 group-hover:translate-x-1 transition-transform">
-                  Pilih →
-                </span>
+                <Link
+                  to="/templates"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-500 hover:text-white border border-rose-200/80 shadow-2xs hover:shadow-md transition-all active:scale-95 group/btn"
+                >
+                  <span>Pilih</span>
+                  <span className="group-hover/btn:translate-x-0.5 transition-transform">→</span>
+                </Link>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 

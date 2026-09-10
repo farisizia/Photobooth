@@ -97,11 +97,15 @@ export function PreviewSection() {
                 </button>
 
                 {/* Large Shutter Button */}
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-rose-200 p-0.5 sm:p-1 flex items-center justify-center">
+                <Link
+                  to="/templates"
+                  title="Pilih Template di Photobooth"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-rose-200 p-0.5 sm:p-1 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                >
                   <div className="w-full h-full rounded-full bg-gradient-to-tr from-coral-500 to-rose-500 hover:from-coral-600 hover:to-rose-600 transition-colors flex items-center justify-center text-lg sm:text-xl text-white shadow-md shadow-rose-500/30">
                     📸
                   </div>
-                </div>
+                </Link>
 
                 {/* Reset / Flash Control Button */}
                 <button

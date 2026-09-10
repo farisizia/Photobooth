@@ -4,6 +4,7 @@
  */
 
 export type TemplateCategory =
+  | 'custom'
   | 'korean'
   | 'newspaper'
   | 'receipt'
@@ -14,9 +15,11 @@ export type TemplateCategory =
   | 'passport'
   | 'floral'
   | 'cute'
-  | 'cinema';
+  | 'cinema'
+  | '4r-print';
 
 export type TemplateLayoutType =
+  | 'custom-builder'
   | 'korean-4cut'
   | 'korean-wide'
   | 'newspaper'
@@ -29,7 +32,15 @@ export type TemplateLayoutType =
   | 'passport-grid'
   | 'floral-romance'
   | 'kawaii-sticker'
-  | 'cinema-ticket';
+  | 'cinema-ticket'
+  | '4r-landscape-single'
+  | '4r-landscape-grid4'
+  | '4r-landscape-col3'
+  | '4r-landscape-split3'
+  | '4r-landscape-asym4'
+  | '4r-portrait-grid4'
+  | '4r-portrait-polaroid'
+  | '4r-portrait-cut2';
 
 export interface PhotoboothTemplate {
   id: string;
@@ -39,17 +50,23 @@ export interface PhotoboothTemplate {
   layoutType: TemplateLayoutType;
   description: string;
   badge: string;
-  aspectRatio: string; // for card display, e.g. '1/2', '3/4', '9/16'
+  aspectRatio: string; // for card display, e.g. '1/2', '3/4', '9/16', '3/2', '2/3'
   theme: {
     bg: string;
     text: string;
     accent: string;
     border?: string;
   };
+  customTexts?: {
+    header?: string;
+    subhead?: string;
+    footer?: string;
+  };
 }
 
 export const TEMPLATE_CATEGORIES: { id: string; name: string; icon: string }[] = [
   { id: 'all', name: 'Semua', icon: '✨' },
+  { id: '4r-print', name: 'Cetak 4R', icon: '🖼️' },
   { id: 'korean', name: 'Korean Cut', icon: '🎞️' },
   { id: 'newspaper', name: 'Koran Jadul', icon: '📰' },
   { id: 'receipt', name: 'Struk Kasir', icon: '🧾' },
@@ -121,12 +138,12 @@ export const TEMPLATES_DATA: PhotoboothTemplate[] = [
   // 4. THE VINTAGE CHRONICLE / KORAN JADUL (2 Slots Newspaper)
   {
     id: 'vintage-chronicle',
-    name: 'The Vintage Chronicle (Koran Jadul)',
+    name: 'The Vintage Chronicle (Breaking News)',
     category: 'newspaper',
     slots: 2,
     layoutType: 'newspaper',
     aspectRatio: '3/4',
-    description: 'Layout koran berita cetak klasik monokrom dengan masthead THE VINTAGE GAZETTE, headline breaking news, & artikel B&W.',
+    description: 'Layout koran berita cetak klasik monokrom dengan masthead BREAKING NEWS, laporan momen bahagia langsung, & artikel B&W.',
     badge: '2 Foto • Filter B&W Otomatis',
     theme: {
       bg: '#F5EFEB',
@@ -313,6 +330,154 @@ export const TEMPLATES_DATA: PhotoboothTemplate[] = [
       text: '#7F1D1D',
       accent: '#DC2626',
       border: '#FECACA',
+    },
+  },
+
+  // =========================================================================
+  // KOLEKSI TEMPLATE CETAK 4R / 4x6 (BLACK & WHITE CONTRAST FRAME)
+  // =========================================================================
+
+  // 15. LANDSCAPE 4R — SINGLE SHOT (1 Foto)
+  {
+    id: '4r-landscape-single',
+    name: 'Landscape 4R — Single Shot',
+    category: '4r-print',
+    slots: 1,
+    layoutType: '4r-landscape-single',
+    aspectRatio: '3/2',
+    description: 'Frame cetak 4x6 landscape hitam-putih kontras dengan 1 foto besar utama elegan dan branding IziaPhoto • 4R Photobooth.',
+    badge: '1 Foto • Standar 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 16. LANDSCAPE 4R — 4-GRID (2x2) (4 Foto)
+  {
+    id: '4r-landscape-grid4',
+    name: 'Landscape 4R — 4-Grid (2x2)',
+    category: '4r-print',
+    slots: 4,
+    layoutType: '4r-landscape-grid4',
+    aspectRatio: '3/2',
+    description: 'Empat kotak foto berjejer 2 atas & 2 bawah dengan divider garis putih bersih dan watermark resmi IziaPhoto.',
+    badge: '4 Foto • Grid 2x2 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 17. LANDSCAPE 4R — 3-GRID VERTIKAL (3 Foto)
+  {
+    id: '4r-landscape-col3',
+    name: 'Landscape 4R — 3-Grid Vertikal',
+    category: '4r-print',
+    slots: 3,
+    layoutType: '4r-landscape-col3',
+    aspectRatio: '3/2',
+    description: 'Tiga foto portrait berdiri berjajar ke samping secara simetris dalam bingkai landscape 4R hitam pekat.',
+    badge: '3 Foto • 3 Kolom 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 18. LANDSCAPE 4R — SPLIT ASIMETRIS (1 Besar + 2 Kecil) (3 Foto)
+  {
+    id: '4r-landscape-split3',
+    name: 'Landscape 4R — Split Asimetris (1 Besar + 2 Kecil)',
+    category: '4r-print',
+    slots: 3,
+    layoutType: '4r-landscape-split3',
+    aspectRatio: '3/2',
+    description: 'Kombinasi 2 foto kecil di atas dan 1 foto horizontal lebar di bawah dengan garis pemisah kontras.',
+    badge: '3 Foto • Asimetris 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 19. LANDSCAPE 4R — ASIMETRIS 4-FOTO (4 Foto)
+  {
+    id: '4r-landscape-asym4',
+    name: 'Landscape 4R — Asimetris 4-Foto',
+    category: '4r-print',
+    slots: 4,
+    layoutType: '4r-landscape-asym4',
+    aspectRatio: '3/2',
+    description: 'Satu foto landscape medium di bagian atas dan 3 foto portrait mini berjajar rapi di bagian bawah.',
+    badge: '4 Foto • Asimetris 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 20. PORTRAIT 4R — SINGLE POLAROID (1 Foto)
+  {
+    id: '4r-portrait-polaroid',
+    name: 'Portrait 4R — Single Polaroid',
+    category: '4r-print',
+    slots: 1,
+    layoutType: '4r-portrait-polaroid',
+    aspectRatio: '2/3',
+    description: 'Foto portrait vertikal besar dengan ruang margin branding IziaPhoto • 4R Photobooth di bagian bawah.',
+    badge: '1 Foto • Polaroid 4R',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 21. PORTRAIT 4R — 2-CUT VERTIKAL (2 Foto)
+  {
+    id: '4r-portrait-cut2',
+    name: 'Portrait 4R — 2-Cut Vertikal',
+    category: '4r-print',
+    slots: 2,
+    layoutType: '4r-portrait-cut2',
+    aspectRatio: '2/3',
+    badge: '2 Foto • 2-Cut 4R',
+    description: 'Dua foto bertingkat atas-bawah dalam bingkai cetak portrait 4R standar studio foto.',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
+    },
+  },
+
+  // 22. PORTRAIT 4R — 4-GRID (2x2) (4 Foto)
+  {
+    id: '4r-portrait-grid4',
+    name: 'Portrait 4R — 4-Grid (2x2)',
+    category: '4r-print',
+    slots: 4,
+    layoutType: '4r-portrait-grid4',
+    aspectRatio: '2/3',
+    badge: '4 Foto • 4R Portrait',
+    description: 'Frame 4R tegak (portrait) dengan 4 kotak foto simetris 2 baris x 2 kolom.',
+    theme: {
+      bg: '#0F1015',
+      text: '#FFFFFF',
+      accent: '#E2E8F0',
+      border: '#2A2D3A',
     },
   },
 ];

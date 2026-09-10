@@ -57,7 +57,7 @@ const playSound = (type: 'beep' | 'shutter') => {
 
 export function PhotoboothPage() {
   const [searchParams] = useSearchParams();
-  const templateId = searchParams.get('template') || 'classic-strip';
+  const templateId = searchParams.get('template') || 'korean-4cut-classic';
   const template = getTemplateById(templateId);
   const totalShots = template.slots;
 

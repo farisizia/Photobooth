@@ -29,9 +29,9 @@ export function Footer() {
           <a href="#features" className="hover:text-rose-600 transition-colors">
             Kenapa IziaPhoto?
           </a>
-          <a href="#templates" className="hover:text-rose-600 transition-colors">
+          <Link to="/templates" className="hover:text-rose-600 transition-colors">
             Template
-          </a>
+          </Link>
           <a href="#how-it-works" className="hover:text-rose-600 transition-colors">
             Cara Kerja
           </a>
