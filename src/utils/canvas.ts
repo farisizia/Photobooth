@@ -658,14 +658,19 @@ export async function renderPhotoboothCanvas(
   // =========================================================================
   // 1. VINTAGE NEWSPAPER (Monochrome, B&W Filter, Headlines & Article Columns)
   // =========================================================================
-  else if (template.layoutType === 'newspaper' || template.category === 'newspaper') {
+  else if (
+    template.layoutType === 'newspaper' ||
+    template.layoutType === 'newspaper-single' ||
+    template.category === 'newspaper'
+  ) {
+    const isSinglePhoto = count === 1 || template.layoutType === 'newspaper-single';
     const width = 840;
     const padding = 44;
     const gap = 24;
     const photoWidth = width - padding * 2;
-    const photoHeight = 310;
+    const photoHeight = isSinglePhoto ? 520 : 310;
     const headerHeight = 220; // Banner + Masthead + Issue Bar + Big Headline
-    const columnsHeight = 130; // 2 Retro text article columns
+    const columnsHeight = isSinglePhoto ? 150 : 130; // 2 Retro text article columns
     const footerHeight = 60;
     const height = headerHeight + count * photoHeight + (count - 1) * gap + columnsHeight + footerHeight;
 
@@ -744,7 +749,9 @@ export async function renderPhotoboothCanvas(
       ctx.textAlign = 'left';
       ctx.font = 'italic 12px "Plus Jakarta Sans", serif';
       ctx.fillText(
-        `FIG. 0${i + 1} — Live photobooth archival frame recorded in monochrome on ${dateStr}.`,
+        isSinglePhoto
+          ? `FIG. 01 — Front Page Landmark: Special joyful portrait preserved in monochrome on ${dateStr}.`
+          : `FIG. 0${i + 1} — Live photobooth archival frame recorded in monochrome on ${dateStr}.`,
         padding,
         y + photoHeight - 8
       );
@@ -1328,6 +1335,222 @@ export async function renderPhotoboothCanvas(
   }
 
   // =========================================================================
+  // 8B. GEN Z COQUETTE (PINK BOWS & PEARLS) (Strip 4 Foto)
+  // =========================================================================
+  else if (template.layoutType === 'genz-coquette') {
+    const width = 640;
+    const padding = 34;
+    const gap = 20;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 90;
+    const footerHeight = 120;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Pastel Pink Coquette Background
+    ctx.fillStyle = bgColor || '#FFF0F5';
+    ctx.fillRect(0, 0, width, height);
+
+    // Decorative double border
+    ctx.strokeStyle = '#FBCFE8';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(12, 12, width - 24, height - 24);
+    ctx.strokeStyle = '#F472B6';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(18, 18, width - 36, height - 36);
+
+    // Header Coquette
+    ctx.fillStyle = textColor || '#831843';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 22px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText(customHeader || '🎀 COQUETTE • IZIAPHOTO 🎀', width / 2, 48);
+
+    ctx.font = 'italic 15px "Caveat", cursive, sans-serif';
+    ctx.letterSpacing = '1px';
+    ctx.fillText(customSubhead || 'sweetest memories with my favorite people ♡', width / 2, 74);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      // Photo frame with soft rounded border
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(padding - 4, y - 4, photoWidth + 8, photoHeight + 8, 14);
+      ctx.fill();
+
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 10, activeFilter, overlayImg);
+
+      // Bow & heart stickers
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎀', padding + 18, y + 24);
+      ctx.fillText('♡', width - padding - 18, y + 24);
+    });
+
+    const footerY = height - 52;
+    ctx.fillStyle = textColor || '#831843';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px "Caveat", cursive, sans-serif';
+    ctx.fillText(customFooter || `xoxo • forever love • ${dateStr} 🎀`, width / 2, footerY);
+
+    ctx.font = '10px monospace';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('IZIAPHOTO COQUETTE STUDIO', width / 2, footerY + 24);
+  }
+
+  // =========================================================================
+  // 8C. GEN Z Y2K DIGICAM (Cyber 2000s Digital Camera)
+  // =========================================================================
+  else if (template.layoutType === 'genz-y2k-digicam') {
+    const width = 640;
+    const padding = 34;
+    const gap = 18;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 90;
+    const footerHeight = 110;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Dark Cyber metallic background
+    ctx.fillStyle = bgColor || '#18181B';
+    ctx.fillRect(0, 0, width, height);
+
+    // Cyan/Chrome cyber border
+    ctx.strokeStyle = '#38BDF8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(12, 12, width - 24, height - 24);
+
+    // Top Digicam OSD / UI
+    ctx.fillStyle = '#38BDF8';
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 13px monospace';
+    ctx.letterSpacing = '1px';
+    ctx.fillText('● REC', padding, 40);
+
+    ctx.textAlign = 'right';
+    ctx.fillText('🔋 98%  [SD 512MB]', width - padding, 40);
+
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 18px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '5px';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(customHeader || '✦ DIGICAM 3.2MP • Y2K ✦', width / 2, 70);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      // Photo Frame
+      ctx.fillStyle = '#09090B';
+      ctx.fillRect(padding - 3, y - 3, photoWidth + 6, photoHeight + 6);
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 0, activeFilter, overlayImg);
+
+      // Corner Crosshair Focus Brackets
+      ctx.strokeStyle = '#38BDF8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding + 8, y + 20);
+      ctx.lineTo(padding + 8, y + 8);
+      ctx.lineTo(padding + 20, y + 8);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(width - padding - 20, y + photoHeight - 8);
+      ctx.lineTo(width - padding - 8, y + photoHeight - 8);
+      ctx.lineTo(width - padding - 8, y + photoHeight - 20);
+      ctx.stroke();
+
+      // Glowing digital amber date stamp
+      ctx.fillStyle = '#F59E0B';
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 14px monospace';
+      ctx.shadowColor = 'rgba(245, 158, 11, 0.8)';
+      ctx.shadowBlur = 6;
+      ctx.fillText(`'${dateStr}`, width - padding - 14, y + photoHeight - 12);
+      ctx.shadowBlur = 0;
+    });
+
+    const footerY = height - 44;
+    ctx.fillStyle = '#38BDF8';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 14px monospace';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(customFooter || `★ CYBER DIGICAM • IZIAPHOTO • ${dateStr} ★`, width / 2, footerY);
+  }
+
+  // =========================================================================
+  // 8D. CUTE MOCHI NEKO (CAT PAWS & WHISKERS)
+  // =========================================================================
+  else if (template.layoutType === 'genz-neko') {
+    const width = 640;
+    const padding = 34;
+    const gap = 20;
+    const photoWidth = width - padding * 2;
+    const photoHeight = Math.round(photoWidth * (3 / 4));
+    const headerHeight = 96;
+    const footerHeight = 115;
+    const height = headerHeight + count * photoHeight + (count - 1) * gap + footerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Warm Butter Cream Pastel
+    ctx.fillStyle = bgColor || '#FEF3C7';
+    ctx.fillRect(0, 0, width, height);
+
+    // Peach border
+    ctx.strokeStyle = '#FED7AA';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(14, 14, width - 28, height - 28);
+
+    // Header Neko
+    ctx.fillStyle = textColor || '#9A3412';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 22px "Space Grotesk", sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(customHeader || '🐾 MOCHI NEKO • MEOW ~ ♡ 🐾', width / 2, 50);
+
+    ctx.font = 'italic 14px "Plus Jakarta Sans", sans-serif';
+    ctx.letterSpacing = '1px';
+    ctx.fillText(customSubhead || 'purr-fect memories captured together ✨', width / 2, 76);
+
+    images.forEach((img, i) => {
+      const y = headerHeight + i * (photoHeight + gap);
+
+      // Card container
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(padding - 4, y - 4, photoWidth + 8, photoHeight + 8, 16);
+      ctx.fill();
+
+      drawCoverImage(ctx, img, padding, y, photoWidth, photoHeight, 12, activeFilter, overlayImg);
+
+      // Cute paw / fish stickers
+      ctx.font = '22px sans-serif';
+      ctx.textAlign = 'center';
+      if (i % 2 === 0) {
+        ctx.fillText('🐾', padding + 20, y + 26);
+        ctx.fillText('🐟', width - padding - 20, y + photoHeight - 12);
+      } else {
+        ctx.fillText('🐱', padding + 20, y + photoHeight - 12);
+        ctx.fillText('🐾', width - padding - 20, y + 26);
+      }
+    });
+
+    const footerY = height - 48;
+    ctx.fillStyle = textColor || '#9A3412';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 18px "Caveat", cursive, sans-serif';
+    ctx.fillText(customFooter || `ฅ^•ﻌ•^ฅ cute paws forever • ${dateStr}`, width / 2, footerY);
+  }
+
+  // =========================================================================
   // 9. Y2K CYBER SILVER (CD Prism Chrome Metallic)
   // =========================================================================
   else if (template.layoutType === 'y2k-chrome' || template.category === 'y2k') {
@@ -1874,4 +2097,186 @@ export function downloadCanvas(canvas: HTMLCanvasElement, filename = 'iziaphoto-
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+/**
+ * Renders the photobooth result onto a 9:16 (1080x1920) canvas tailored for Instagram Stories.
+ * Guaranteed safe zones (top 220px & bottom 260px clear of Instagram UI), with aesthetic ambient background
+ * and subtle corner decorations/branding.
+ */
+export async function renderInstagramStoryCanvas(
+  sourceCanvas: HTMLCanvasElement,
+  opts?: {
+    bgColor?: string;
+    accentColor?: string;
+    title?: string;
+  }
+): Promise<HTMLCanvasElement> {
+  const storyCanvas = document.createElement('canvas');
+  const width = 1080;
+  const height = 1920;
+  storyCanvas.width = width;
+  storyCanvas.height = height;
+  const ctx = storyCanvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D unavailable');
+
+  const baseBg = opts?.bgColor || '#0D0E15';
+
+  // 1. Draw smooth background with radial / ambient gradient
+  ctx.fillStyle = baseBg;
+  ctx.fillRect(0, 0, width, height);
+
+  // Ambient soft glow in the center behind the frame
+  const gradient = ctx.createRadialGradient(
+    width / 2,
+    height / 2,
+    100,
+    width / 2,
+    height / 2,
+    800
+  );
+  gradient.addColorStop(0, opts?.accentColor ? `${opts.accentColor}33` : 'rgba(251, 113, 133, 0.22)');
+  gradient.addColorStop(1, 'transparent');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Safe zone calculation:
+  // Top safe zone (Instagram story header / avatar): 220px
+  // Bottom safe zone (Send message bar / share): 260px
+  // Usable vertical space: 1920 - 220 - 260 = 1440px
+  // Usable horizontal space: 1080 - 140 = 940px
+  const maxW = width - 140; // 940px
+  const maxH = height - 480; // 1440px
+
+  const srcRatio = sourceCanvas.width / sourceCanvas.height;
+  let destW = maxW;
+  let destH = destW / srcRatio;
+
+  if (destH > maxH) {
+    destH = maxH;
+    destW = destH * srcRatio;
+  }
+
+  const destX = (width - destW) / 2;
+  const destY = 220 + (maxH - destH) / 2;
+
+  // 3. Drop shadow for the framed photobooth image
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowBlur = 35;
+  ctx.shadowOffsetY = 15;
+  ctx.drawImage(sourceCanvas, destX, destY, destW, destH);
+  ctx.restore();
+
+  // Subtle clean border around the frame
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(destX, destY, destW, destH);
+
+  // 4. Subtle Instagram Story Header / Footer Accents inside safe zones
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = 'bold 16px "Space Grotesk", sans-serif';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('✦ IZIAPHOTO • MEMORIES ✦', width / 2, 195);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.font = '13px monospace';
+  ctx.letterSpacing = '2px';
+  ctx.fillText('@iziaphoto • live photobooth', width / 2, height - 190);
+
+  return storyCanvas;
+}
+
+/**
+ * Opens a print dialog with optimal margins and paper scaling
+ */
+export function printPhotoboothCanvas(canvas: HTMLCanvasElement, title = 'IziaPhoto Print') {
+  const dataUrl = canvas.toDataURL('image/png', 1.0);
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Izinkan pop-up untuk mencetak foto langsung dari browser.');
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          @page {
+            size: auto;
+            margin: 0;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          img {
+            max-width: 96%;
+            max-height: 96vh;
+            object-fit: contain;
+            box-shadow: none;
+            page-break-inside: avoid;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${dataUrl}" onload="window.focus(); setTimeout(() => { window.print(); }, 250);" />
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+/**
+ * Shares canvas using Web Share API or falls back to clipboard / download
+ */
+export async function sharePhotoboothCanvas(
+  canvas: HTMLCanvasElement,
+  filename = 'iziaphoto.png',
+  shareText = 'Foto seru dari IziaPhoto Photobooth! ✨'
+): Promise<{ success: boolean; method: 'native' | 'clipboard' | 'download' }> {
+  try {
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), 'image/png', 1.0)
+    );
+    if (!blob) throw new Error('Blob conversion failed');
+
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    // Check if navigator.share supports sharing files
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'IziaPhoto Photobooth',
+        text: shareText,
+        files: [file],
+      });
+      return { success: true, method: 'native' };
+    }
+
+    // Try Clipboard API
+    if (navigator.clipboard && window.ClipboardItem) {
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+      return { success: true, method: 'clipboard' };
+    }
+  } catch (err: unknown) {
+    if ((err as Error)?.name === 'AbortError') {
+      return { success: false, method: 'native' };
+    }
+    console.warn('[Share] Falling back to download:', err);
+  }
+
+  // Fallback to normal download
+  downloadCanvas(canvas, filename);
+  return { success: true, method: 'download' };
 }

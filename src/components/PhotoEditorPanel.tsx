@@ -35,17 +35,30 @@ interface PhotoEditorPanelProps {
 
 // Curated aesthetic presets
 const PRESET_COLORS = [
-  { label: 'Template', hex: 'default' },
+  { label: 'Template Asli', hex: 'default' },
+  // Gen Z Sweet Pastels
+  { label: 'Strawberry Milk', hex: '#FCE7F3' },
+  { label: 'Coquette Pink', hex: '#FFF0F5' },
+  { label: 'Butter Cream', hex: '#FEF9C3' },
+  { label: 'Matcha Milk', hex: '#D1FAE5' },
+  { label: 'Baby Sky Blue', hex: '#E0F2FE' },
+  { label: 'Lavender Haze', hex: '#EDE9FE' },
+  { label: 'Peach Fuzz', hex: '#FFEDD5' },
+  { label: 'Mint Breeze', hex: '#CCFBF1' },
+  // Clean & Earthy Vintage
   { label: 'Putih Bersih', hex: '#FFFFFF' },
+  { label: 'Koran Antik', hex: '#F4EFEB' },
+  { label: 'Warm Cream', hex: '#FAF6EF' },
+  { label: 'Mocha Taupe', hex: '#E7E5E4' },
+  // Dark Aesthetic & Y2K Bold
   { label: 'Charcoal Noir', hex: '#0F1015' },
-  { label: 'Kertas Retro', hex: '#F4EFEB' },
-  { label: 'Pastel Pink', hex: '#FFF0F5' },
-  { label: 'Soft Lavender', hex: '#F5F3FF' },
-  { label: 'Cream Butter', hex: '#FEF9C3' },
-  { label: 'Sage Mint', hex: '#ECFDF5' },
-  { label: 'Sky Blue', hex: '#F0F9FF' },
+  { label: 'Cyber Silver', hex: '#E2E8F0' },
+  { label: 'Cherry Red', hex: '#BE123C' },
+  { label: 'Midnight Plum', hex: '#3B0764' },
+  { label: 'Indie Navy', hex: '#0F172A' },
+  { label: 'Forest Green', hex: '#064E3B' },
   { label: 'Deep Crimson', hex: '#450A0A' },
-  { label: 'Midnight Blue', hex: '#0F172A' },
+  { label: 'Neon Cyber Cyan', hex: '#083344' },
 ];
 
 const FONT_OPTIONS: { id: FontStyleOption; label: string; preview: string; sub: string }[] = [

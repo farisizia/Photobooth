@@ -972,20 +972,40 @@ export function renderArEffectsFromGeometries(
       ctx.restore();
     }
 
-    // 2. CHEEKS (Anchored on Left & Right Cheeks)
+    // 2. CHEEKS (Anchored on Left & Right Cheeks or Dual-Cheek Span)
     else if (overlayItem.arAnchor === 'cheeks') {
-      const cheekSize = Math.max(36, geo.eyeDistance * 0.45);
-      ctx.save();
-      ctx.translate(geo.leftCheek.x, geo.leftCheek.y);
-      ctx.rotate(geo.rollAngle);
-      ctx.drawImage(effectImg, -cheekSize / 2, -cheekSize / 2, cheekSize, cheekSize);
-      ctx.restore();
+      const aspect =
+        effectImg.naturalWidth && effectImg.naturalHeight
+          ? effectImg.naturalWidth / effectImg.naturalHeight
+          : 3;
 
-      ctx.save();
-      ctx.translate(geo.rightCheek.x, geo.rightCheek.y);
-      ctx.rotate(geo.rollAngle);
-      ctx.drawImage(effectImg, -cheekSize / 2, -cheekSize / 2, cheekSize, cheekSize);
-      ctx.restore();
+      // Wide asset covering both cheeks and nose bridge (e.g., heart blush, whiskers, freckles, bandaid)
+      if (aspect > 1.8) {
+        const spanWidth = Math.max(120, geo.eyeDistance * 2.35);
+        const spanHeight = spanWidth / aspect;
+        const midCheekX = (geo.leftCheek.x + geo.rightCheek.x) / 2;
+        const midCheekY = (geo.leftCheek.y + geo.rightCheek.y) / 2;
+
+        ctx.save();
+        ctx.translate(midCheekX, midCheekY);
+        ctx.rotate(geo.rollAngle);
+        ctx.drawImage(effectImg, -spanWidth / 2, -spanHeight / 2, spanWidth, spanHeight);
+        ctx.restore();
+      } else {
+        // Individual sticker decal drawn on left & right cheeks
+        const cheekSize = Math.max(36, geo.eyeDistance * 0.45);
+        ctx.save();
+        ctx.translate(geo.leftCheek.x, geo.leftCheek.y);
+        ctx.rotate(geo.rollAngle);
+        ctx.drawImage(effectImg, -cheekSize / 2, -cheekSize / 2, cheekSize, cheekSize);
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(geo.rightCheek.x, geo.rightCheek.y);
+        ctx.rotate(geo.rollAngle);
+        ctx.drawImage(effectImg, -cheekSize / 2, -cheekSize / 2, cheekSize, cheekSize);
+        ctx.restore();
+      }
     }
 
     // 3. EARS / HORNS / HALO (Anchored at Top of Head / Crown of Hair)
@@ -1004,7 +1024,23 @@ export function renderArEffectsFromGeometries(
       ctx.restore();
     }
 
-    // 4. FLORAL CROWN / HEADBAND / TIARA / BEANIE (Anchored on Forehead)
+    // 4. FOREHEAD STICKER / MOON / BINDI
+    else if (overlayItem.id.includes('moon') || overlayItem.id.includes('bindi') || overlayItem.id.includes('third_eye')) {
+      const bindiWidth = Math.max(80, geo.eyeDistance * 1.5);
+      const aspect =
+        effectImg.naturalWidth && effectImg.naturalHeight
+          ? effectImg.naturalWidth / effectImg.naturalHeight
+          : 2.5;
+      const bindiHeight = bindiWidth / aspect;
+
+      ctx.save();
+      ctx.translate(geo.forehead.x, geo.forehead.y);
+      ctx.rotate(geo.rollAngle);
+      ctx.drawImage(effectImg, -bindiWidth / 2, -bindiHeight * 0.5, bindiWidth, bindiHeight);
+      ctx.restore();
+    }
+
+    // 5. FLORAL CROWN / HEADBAND / TIARA / BEANIE (Anchored on Forehead)
     else {
       const crownWidth = Math.max(150, Math.max(geo.earDistance * 1.3, geo.eyeDistance * 2.9));
       const aspect =

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import {
   renderPhotoboothCanvas,
   downloadCanvas,
+  renderInstagramStoryCanvas,
+  printPhotoboothCanvas,
+  sharePhotoboothCanvas,
   FontStyleOption,
   TextColorOption,
 } from '../utils/canvas';
@@ -11,7 +14,7 @@ import { CameraFilter, DEFAULT_FILTER } from '../utils/filters';
 import { OverlayItem, DEFAULT_OVERLAY } from '../utils/overlays';
 import { getActiveBuilderConfig, FrameMotif } from '../utils/customBuilder';
 import { PhotoEditorPanel } from './PhotoEditorPanel';
-import { Download, RotateCcw, LayoutTemplate } from 'lucide-react';
+import { Download, RotateCcw, LayoutTemplate, Printer, Share2, Sparkles, Check } from 'lucide-react';
 
 interface PhotoTemplateProps {
   photos: string[];
@@ -65,6 +68,8 @@ export function PhotoTemplate({
   const [localFilter, setLocalFilter] = useState<CameraFilter>(externalFilter || DEFAULT_FILTER);
   const [localOverlay, setLocalOverlay] = useState<OverlayItem>(externalOverlay || DEFAULT_OVERLAY);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
   const activeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,6 +166,42 @@ export function PhotoTemplate({
     }
   };
 
+  const handleDownloadStory = async () => {
+    if (!activeCanvasRef.current) return;
+    try {
+      setIsGeneratingStory(true);
+      const storyCanvas = await renderInstagramStoryCanvas(activeCanvasRef.current, {
+        bgColor: customBgColor !== 'default' ? customBgColor : template.theme.bg,
+        accentColor: template.theme.accent,
+        title: customTexts.header || template.name,
+      });
+      downloadCanvas(storyCanvas, `iziaphoto-story-9x16-${template.id}.png`);
+    } catch (err) {
+      console.error('[PhotoTemplate] Story canvas generation failed:', err);
+    } finally {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (activeCanvasRef.current) {
+      printPhotoboothCanvas(activeCanvasRef.current, `IziaPhoto - ${template.name}`);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!activeCanvasRef.current) return;
+    const res = await sharePhotoboothCanvas(
+      activeCanvasRef.current,
+      `iziaphoto-${template.id}.png`,
+      'Lihat hasil photobooth estetik dari IziaPhoto! ✨📸'
+    );
+    if (res.method === 'clipboard') {
+      setShareFeedback('Foto berhasil disalin ke clipboard! Siap di-paste di chat atau story.');
+      setTimeout(() => setShareFeedback(null), 4000);
+    }
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 animate-fade-in pb-12">
       {/* Title Header */}
@@ -204,33 +245,80 @@ export function PhotoTemplate({
             )}
           </div>
 
+          {/* Share Feedback Toast Banner */}
+          {shareFeedback && (
+            <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+              <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>{shareFeedback}</span>
+            </div>
+          )}
+
           {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             {/* Primary Download Button */}
             <button
               type="button"
               onClick={handleDownload}
               disabled={!canvasDataUrl || isGenerating}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-xl shadow-coral-500/30 transition-all active:scale-95 disabled:opacity-50"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-xl shadow-coral-500/30 transition-all active:scale-95 disabled:opacity-50"
             >
               <Download className="w-5 h-5 text-white stroke-[2.5]" />
               <span>Download Photo (High-Res PNG)</span>
             </button>
 
-            {/* Secondary Buttons Row: Retake & Change Template */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Instagram Story 9:16 Special Button (Anti-Terpotong) */}
+            <button
+              type="button"
+              onClick={handleDownloadStory}
+              disabled={!canvasDataUrl || isGenerating || isGeneratingStory}
+              className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white font-bold text-sm flex items-center justify-between shadow-lg shadow-pink-500/20 transition-all active:scale-95 disabled:opacity-50 border border-white/20"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Unduh Format IG Story (9:16)</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-mono uppercase tracking-wider">
+                {isGeneratingStory ? 'Menyiapkan...' : 'Anti-Terpotong ✨'}
+              </span>
+            </button>
+
+            {/* Row 2: Print & Share Buttons */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={handlePrint}
+                disabled={!canvasDataUrl || isGenerating}
+                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 disabled:opacity-50"
+              >
+                <Printer className="w-4 h-4 text-cyan-300 stroke-[2.2]" />
+                <span>Cetak / Print</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={!canvasDataUrl || isGenerating}
+                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 disabled:opacity-50"
+              >
+                <Share2 className="w-4 h-4 text-emerald-300 stroke-[2.2]" />
+                <span>Bagikan / Share</span>
+              </button>
+            </div>
+
+            {/* Row 3: Retake & Change Template */}
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={onRetake}
-                className="py-3.5 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15"
+                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15"
               >
-                <RotateCcw className="w-4 h-4 text-gray-200 stroke-[2.2]" />
+                <RotateCcw className="w-4 h-4 text-gray-300 stroke-[2.2]" />
                 <span>Foto Ulang</span>
               </button>
 
               <Link
                 to="/templates"
-                className="py-3.5 px-4 rounded-2xl glass-pill hover:bg-white/10 text-coral-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 text-center"
+                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-coral-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 text-center"
               >
                 <LayoutTemplate className="w-4 h-4 text-coral-300 stroke-[2.2]" />
                 <span>Ganti Template</span>

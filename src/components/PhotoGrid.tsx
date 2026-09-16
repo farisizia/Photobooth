@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Trash2, ChevronLeft, ChevronRight, GripVertical, Plus } from 'lucide-react';
+import { RefreshCw, Trash2, ChevronLeft, ChevronRight, GripVertical, Plus, FolderUp } from 'lucide-react';
 
 interface PhotoGridProps {
   photos: string[];
@@ -8,6 +8,7 @@ interface PhotoGridProps {
   onDeletePhoto: (index: number) => void;
   onReorderPhotos: (newPhotos: string[]) => void;
   onAddPhoto?: () => void;
+  onUploadPhoto?: (file: File, targetIndex: number) => void;
 }
 
 export function PhotoGrid({
@@ -17,6 +18,7 @@ export function PhotoGrid({
   onDeletePhoto,
   onReorderPhotos,
   onAddPhoto,
+  onUploadPhoto,
 }: PhotoGridProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -128,7 +130,7 @@ export function PhotoGrid({
                 #{idx + 1}
               </div>
 
-              {/* Action Buttons: Ubah Foto & Delete (Top Right) */}
+              {/* Action Buttons: Ubah Foto, Upload Galeri & Delete (Top Right) */}
               <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-20">
                 {/* Single Ubah Foto Button */}
                 <button
@@ -142,6 +144,29 @@ export function PhotoGrid({
                 >
                   <RefreshCw className="w-3.5 h-3.5 stroke-[2.2]" />
                 </button>
+
+                {/* Upload from Gallery for this slot */}
+                {onUploadPhoto && (
+                  <label
+                    title={`Ganti foto #${idx + 1} dari galeri`}
+                    className="w-7 h-7 rounded-full bg-black/75 hover:bg-purple-600 backdrop-blur-md border border-white/20 text-white flex items-center justify-center shadow-md transition-all active:scale-90 hover:scale-110 cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <FolderUp className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          onUploadPhoto(file, idx);
+                        }
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
 
                 {/* Delete Button */}
                 <button
@@ -196,21 +221,49 @@ export function PhotoGrid({
         {/* Empty Slots if photos are deleted or missing */}
         {Array.from({ length: Math.max(0, totalSlots - photos.length) }).map((_, emptyIdx) => {
           const slotNum = photos.length + emptyIdx + 1;
+          const targetSlotIdx = photos.length + emptyIdx;
           return (
-            <button
+            <div
               key={`empty-${emptyIdx}`}
-              type="button"
-              onClick={onAddPhoto}
-              title={`Ambil foto untuk slot #${slotNum}`}
-              className="relative aspect-[3/4] rounded-2xl border-2 border-dashed border-coral-500/40 hover:border-coral-400 bg-coral-500/5 hover:bg-coral-500/15 flex flex-col items-center justify-center gap-1.5 p-2 transition-all active:scale-95 group text-coral-400 shadow-inner"
+              className="relative aspect-[3/4] rounded-2xl border-2 border-dashed border-coral-500/40 hover:border-coral-400 bg-coral-500/5 hover:bg-coral-500/10 flex flex-col items-center justify-center gap-1.5 p-2 transition-all group text-coral-400 shadow-inner"
             >
-              <div className="w-8 h-8 rounded-full bg-coral-500/20 group-hover:bg-coral-500 text-coral-300 group-hover:text-white flex items-center justify-center transition-all shadow-md">
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <span className="text-[10px] font-extrabold text-gray-300 group-hover:text-coral-300 tracking-tight text-center">
-                Isi #{slotNum}
-              </span>
-            </button>
+              <button
+                type="button"
+                onClick={onAddPhoto}
+                title={`Ambil foto kamera untuk slot #${slotNum}`}
+                className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
+              >
+                <div className="w-7 h-7 rounded-full bg-coral-500/20 group-hover:bg-coral-500 text-coral-300 group-hover:text-white flex items-center justify-center transition-all shadow-md">
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <span className="text-[10px] font-extrabold text-gray-300 group-hover:text-coral-300 tracking-tight text-center">
+                  Kamera #{slotNum}
+                </span>
+              </button>
+
+              {onUploadPhoto && (
+                <label
+                  title={`Pilih foto #${slotNum} dari galeri`}
+                  className="text-[9px] font-bold text-purple-300 hover:text-white px-2 py-0.5 rounded-full bg-purple-500/20 hover:bg-purple-600 border border-purple-400/30 cursor-pointer transition-all active:scale-95 flex items-center gap-1 mt-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <FolderUp className="w-2.5 h-2.5" />
+                  <span>Galeri</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        onUploadPhoto(file, targetSlotIdx);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
+            </div>
           );
         })}
       </div>

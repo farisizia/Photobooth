@@ -23,12 +23,16 @@ export type TemplateLayoutType =
   | 'korean-4cut'
   | 'korean-wide'
   | 'newspaper'
+  | 'newspaper-single'
   | 'receipt'
   | 'music-player'
   | 'film-sprocket'
   | 'polaroid-single'
   | 'polaroid-dual'
   | 'y2k-chrome'
+  | 'genz-coquette'
+  | 'genz-y2k-digicam'
+  | 'genz-neko'
   | 'passport-grid'
   | 'floral-romance'
   | 'kawaii-sticker'
@@ -145,6 +149,24 @@ export const TEMPLATES_DATA: PhotoboothTemplate[] = [
     aspectRatio: '3/4',
     description: 'Layout koran berita cetak klasik monokrom dengan masthead BREAKING NEWS, laporan momen bahagia langsung, & artikel B&W.',
     badge: '2 Foto • Filter B&W Otomatis',
+    theme: {
+      bg: '#F5EFEB',
+      text: '#1C1917',
+      accent: '#292524',
+      border: '#1C1917',
+    },
+  },
+
+  // 4B. THE VINTAGE CHRONICLE — SOLO HEADLINE (1 Foto)
+  {
+    id: 'vintage-newspaper-single',
+    name: 'The Vintage Chronicle (Solo Headline)',
+    category: 'newspaper',
+    slots: 1,
+    layoutType: 'newspaper-single',
+    aspectRatio: '3/4',
+    description: 'Format koran berita klasik 1 foto besar utama di halaman depan (*front page*), lengkap dengan tajuk BREAKING NEWS & artikel cetak antik.',
+    badge: '1 Foto • Front Page Koran',
     theme: {
       bg: '#F5EFEB',
       text: '#1C1917',
@@ -330,6 +352,60 @@ export const TEMPLATES_DATA: PhotoboothTemplate[] = [
       text: '#7F1D1D',
       accent: '#DC2626',
       border: '#FECACA',
+    },
+  },
+
+  // 14B. GEN Z COQUETTE (PINK BOWS & PEARLS) (4 Slots)
+  {
+    id: 'genz-coquette-bows',
+    name: 'Gen Z Coquette (Bows & Pearls)',
+    category: 'cute',
+    slots: 4,
+    layoutType: 'genz-coquette',
+    aspectRatio: '1/2',
+    description: 'Strip 4 foto vertikal estetika Coquette viral bertabur pita satin merah muda manis, mutiara, dan coretan hati.',
+    badge: '4 Foto • Coquette Bows 🎀',
+    theme: {
+      bg: '#FFF0F5',
+      text: '#831843',
+      accent: '#EC4899',
+      border: '#FBCFE8',
+    },
+  },
+
+  // 14C. GEN Z Y2K DIGICAM (CYBER 2000s) (4 Slots)
+  {
+    id: 'genz-y2k-digicam',
+    name: 'Y2K Digicam Angel (Cyber 2000s)',
+    category: 'y2k',
+    slots: 4,
+    layoutType: 'genz-y2k-digicam',
+    aspectRatio: '1/2',
+    description: 'Vibes kamera saku digital jadul era 2000-an dengan stempel tanggal digital menyala, cyber sparkles, dan bingkai perak.',
+    badge: '4 Foto • Y2K Digicam 💿',
+    theme: {
+      bg: '#18181B',
+      text: '#38BDF8',
+      accent: '#FACC15',
+      border: '#38BDF8',
+    },
+  },
+
+  // 14D. CUTE MOCHI NEKO (CAT PAWS & WHISKERS) (4 Slots)
+  {
+    id: 'genz-neko-paws',
+    name: 'Cute Mochi Neko (Cat Paws)',
+    category: 'cute',
+    slots: 4,
+    layoutType: 'genz-neko',
+    aspectRatio: '1/2',
+    description: 'Bingkai pastel ceria dengan hiasan jejak cakar kucing mochi, kumis lucu, dan stiker ikan kecil menggemaskan.',
+    badge: '4 Foto • Neko Meow 🐾',
+    theme: {
+      bg: '#FEF3C7',
+      text: '#9A3412',
+      accent: '#F97316',
+      border: '#FED7AA',
     },
   },
 

@@ -20,7 +20,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-export type FilterTrayTab = 'color' | 'floral' | 'cute' | 'y2k' | 'all';
+export type FilterTrayTab = 'beauty' | 'color' | 'floral' | 'cute' | 'y2k' | 'all';
 
 interface FilterOverlayTrayProps {
   selectedFilter: CameraFilter;
@@ -28,7 +28,7 @@ interface FilterOverlayTrayProps {
   selectedOverlay: OverlayItem;
   onSelectOverlay: (overlay: OverlayItem) => void;
   onClose: () => void;
-  defaultTab?: 'tone' | 'flowers' | 'cute' | 'color' | 'floral' | 'y2k';
+  defaultTab?: 'beauty' | 'tone' | 'flowers' | 'cute' | 'color' | 'floral' | 'y2k';
   onSelectEffect?: (effect: EffectItem) => void;
 }
 
@@ -40,7 +40,7 @@ export function FilterOverlayTray({
   selectedOverlay,
   onSelectOverlay,
   onClose,
-  defaultTab = 'color',
+  defaultTab = 'beauty',
   onSelectEffect,
 }: FilterOverlayTrayProps) {
   // Normalize default tab
@@ -63,6 +63,7 @@ export function FilterOverlayTray({
   // Tab Counts for badges
   const tabCounts = useMemo(() => {
     return {
+      beauty: ALL_EFFECT_PRESETS.filter((e) => e.category === 'beauty').length,
       color: ALL_EFFECT_PRESETS.filter((e) => e.category === 'color').length,
       floral: ALL_EFFECT_PRESETS.filter((e) => e.category === 'floral').length,
       cute: ALL_EFFECT_PRESETS.filter((e) => e.category === 'cute').length,
@@ -125,7 +126,7 @@ export function FilterOverlayTray({
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="text-xs font-black text-white tracking-wider uppercase flex items-center gap-1.5 flex-shrink-0">
             <Wand2 className="w-4 h-4 text-coral-400" />
-            <span className="hidden sm:inline">100+ FILTER & EFEK</span>
+            <span className="hidden sm:inline">160+ FILTER & EFEK</span>
           </span>
 
           {/* Active summary pills */}
@@ -190,7 +191,7 @@ export function FilterOverlayTray({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari 100+ efek (misal: B&W, Portra, Sakura, Bunny, Y2K)..."
+          placeholder="Cari 160+ efek (misal: Beauty, Douyin, Blush, Sakura, Glazed, Y2K)..."
           className="w-full pl-8 pr-8 py-1.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder-gray-400 focus:outline-hidden focus:border-coral-400 focus:ring-1 focus:ring-coral-400 transition-all"
         />
         {searchQuery && (
@@ -205,73 +206,90 @@ export function FilterOverlayTray({
       </div>
 
       {/* Category Tabs */}
-      <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-black/40 border border-white/10 text-xs">
-        {/* Tab 1: Gaya Warna */}
+      <div className="grid grid-cols-5 gap-1 p-1 rounded-xl bg-black/40 border border-white/10 text-xs">
+        {/* Tab 1: Beauty TikTok */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('beauty');
+          }}
+          className={`flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-0.5 sm:px-1 rounded-lg font-bold transition-all ${
+            activeTab === 'beauty'
+              ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-coral-500 text-white shadow-md'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Sparkles className="w-3 h-3 flex-shrink-0 text-amber-300" />
+          <span className="text-[9px] sm:text-[11px] truncate">Beauty</span>
+          <span className="text-[8px] sm:text-[9px] opacity-75 font-mono">({tabCounts.beauty})</span>
+        </button>
+
+        {/* Tab 2: Gaya Warna */}
         <button
           type="button"
           onClick={() => {
             setActiveTab('color');
           }}
-          className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg font-bold transition-all ${
+          className={`flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-0.5 sm:px-1 rounded-lg font-bold transition-all ${
             activeTab === 'color'
               ? 'bg-gradient-to-r from-coral-500 to-rose-500 text-white shadow-md'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Palette className="w-3 h-3 flex-shrink-0" />
-          <span className="text-[10px] sm:text-[11px] truncate">Warna</span>
-          <span className="text-[9px] opacity-75 font-mono">({tabCounts.color})</span>
+          <span className="text-[9px] sm:text-[11px] truncate">Warna</span>
+          <span className="text-[8px] sm:text-[9px] opacity-75 font-mono">({tabCounts.color})</span>
         </button>
 
-        {/* Tab 2: Bunga & Botanical */}
+        {/* Tab 3: Bunga & Botanical */}
         <button
           type="button"
           onClick={() => {
             setActiveTab('floral');
           }}
-          className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg font-bold transition-all ${
+          className={`flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-0.5 sm:px-1 rounded-lg font-bold transition-all ${
             activeTab === 'floral'
               ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Flower2 className="w-3 h-3 flex-shrink-0" />
-          <span className="text-[10px] sm:text-[11px] truncate">Bunga</span>
-          <span className="text-[9px] opacity-75 font-mono">({tabCounts.floral})</span>
+          <span className="text-[9px] sm:text-[11px] truncate">Bunga</span>
+          <span className="text-[8px] sm:text-[9px] opacity-75 font-mono">({tabCounts.floral})</span>
         </button>
 
-        {/* Tab 3: Cute & Kawaii */}
+        {/* Tab 4: Cute & Kawaii */}
         <button
           type="button"
           onClick={() => {
             setActiveTab('cute');
           }}
-          className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg font-bold transition-all ${
+          className={`flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-0.5 sm:px-1 rounded-lg font-bold transition-all ${
             activeTab === 'cute'
               ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-md'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Wand2 className="w-3 h-3 flex-shrink-0" />
-          <span className="text-[10px] sm:text-[11px] truncate">Cute</span>
-          <span className="text-[9px] opacity-75 font-mono">({tabCounts.cute})</span>
+          <span className="text-[9px] sm:text-[11px] truncate">Cute</span>
+          <span className="text-[8px] sm:text-[9px] opacity-75 font-mono">({tabCounts.cute})</span>
         </button>
 
-        {/* Tab 4: Y2K & Cyber */}
+        {/* Tab 5: Y2K & Cyber */}
         <button
           type="button"
           onClick={() => {
             setActiveTab('y2k');
           }}
-          className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg font-bold transition-all ${
+          className={`flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-0.5 sm:px-1 rounded-lg font-bold transition-all ${
             activeTab === 'y2k'
               ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Sparkles className="w-3 h-3 flex-shrink-0" />
-          <span className="text-[10px] sm:text-[11px] truncate">Y2K</span>
-          <span className="text-[9px] opacity-75 font-mono">({tabCounts.y2k})</span>
+          <span className="text-[9px] sm:text-[11px] truncate">Y2K</span>
+          <span className="text-[8px] sm:text-[9px] opacity-75 font-mono">({tabCounts.y2k})</span>
         </button>
       </div>
 

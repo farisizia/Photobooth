@@ -7,6 +7,7 @@ interface CaptureButtonProps {
   isSingleRetake?: boolean;
   retakeSlotIndex?: number;
   onCancelRetake?: () => void;
+  onUploadGallery?: () => void;
 }
 
 export function CaptureButton({
@@ -18,6 +19,7 @@ export function CaptureButton({
   isSingleRetake = false,
   retakeSlotIndex,
   onCancelRetake,
+  onUploadGallery,
 }: CaptureButtonProps) {
   const targetSlotNumber = (retakeSlotIndex ?? photoIndex) + 1;
 
@@ -45,6 +47,17 @@ export function CaptureButton({
                 : `Mulai Sesi Foto (${totalPhotos} Foto)`}
             </span>
           </button>
+
+          {onUploadGallery && (
+            <button
+              type="button"
+              onClick={onUploadGallery}
+              className="w-full py-2.5 px-4 rounded-xl glass-panel hover:bg-white/10 text-xs font-bold text-gray-200 flex items-center justify-center gap-1.5 border border-white/15 transition-all active:scale-95"
+            >
+              <span>📁</span>
+              <span>{isSingleRetake ? `Pilih Foto Pengganti #${targetSlotNumber} dari Galeri` : `Pilih Foto Langsung dari Galeri (${totalPhotos} Foto)`}</span>
+            </button>
+          )}
 
           {isSingleRetake && onCancelRetake && (
             <button

@@ -84,6 +84,72 @@ export function PhotoboothPage() {
 
   // Video container reference for taking snapshots
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Helper to read File into high-quality dataURL
+  const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Upload handler for full session or single retake from camera screen
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      if (retakeTargetIndex !== null) {
+        // Single slot replacement
+        const dataUrl = await readFileAsDataUrl(files[0]);
+        setPhotos((prev) => {
+          const updated = [...prev];
+          if (retakeTargetIndex < updated.length) {
+            updated[retakeTargetIndex] = dataUrl;
+          } else {
+            updated.push(dataUrl);
+          }
+          saveCapturedPhotos(updated);
+          return updated;
+        });
+        setRetakeTargetIndex(null);
+        setState('result');
+      } else {
+        // Multi-photo upload for full session
+        const fileList = Array.from(files).slice(0, totalShots);
+        const dataUrls = await Promise.all(fileList.map(readFileAsDataUrl));
+        setPhotos(dataUrls);
+        saveCapturedPhotos(dataUrls);
+        setState('result');
+      }
+    } catch (err) {
+      console.error('[Photobooth] Failed to read gallery files:', err);
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // Upload handler for individual slots from PhotoGrid
+  const handleSlotUploadFromPhotoGrid = async (file: File, targetIndex: number) => {
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setPhotos((prev) => {
+        const updated = [...prev];
+        if (targetIndex < updated.length) {
+          updated[targetIndex] = dataUrl;
+        } else {
+          updated.push(dataUrl);
+        }
+        saveCapturedPhotos(updated);
+        return updated;
+      });
+    } catch (err) {
+      console.error('[Photobooth] Failed to read slot file:', err);
+    }
+  };
 
   // Initialize camera
   const initCamera = useCallback(async (targetFacing: FacingMode = 'user') => {
@@ -368,6 +434,15 @@ export function PhotoboothPage() {
               Enable Camera
             </button>
 
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="w-full mt-2.5 py-3 px-6 rounded-xl glass-panel border border-white/15 font-bold text-gray-200 hover:text-white hover:border-white/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <span>📁</span>
+              <span>Pilih Foto dari Galeri Saja</span>
+            </button>
+
             {state === 'error' && (
               <p className="text-[11px] text-gray-400 mt-4 leading-normal">
                 Tips: Jika diakses lewat IP LAN / HP, pastikan membuka via <strong>HTTPS</strong> atau gunakan <strong>http://localhost:5173</strong>.
@@ -402,14 +477,14 @@ export function PhotoboothPage() {
                 onToggleLighting={() => setLightingBoost((prev) => !prev)}
                 showFilterTray={showFilterTray}
                 onToggleFilterTray={() => setShowFilterTray((prev) => !prev)}
-              />
-
-              <Countdown
-                count={countdownValue}
-                photoIndex={currentShotIndex}
-                isFlashing={isFlashing}
-                totalPhotos={retakeTargetIndex !== null ? 1 : totalShots}
-              />
+              >
+                <Countdown
+                  count={countdownValue}
+                  photoIndex={currentShotIndex}
+                  isFlashing={isFlashing}
+                  totalPhotos={retakeTargetIndex !== null ? 1 : totalShots}
+                />
+              </CameraPreview>
             </div>
 
             {/* Effect / Filter Picker (In normal document flow, placed directly beneath camera preview) */}
@@ -436,10 +511,21 @@ export function PhotoboothPage() {
                 isSingleRetake={retakeTargetIndex !== null}
                 retakeSlotIndex={retakeTargetIndex ?? undefined}
                 onCancelRetake={handleCancelRetake}
+                onUploadGallery={() => galleryInputRef.current?.click()}
               />
             </div>
           </div>
         )}
+
+        {/* Hidden File Input for Device Gallery Pick */}
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          multiple={retakeTargetIndex === null}
+          className="hidden"
+          onChange={handleGalleryUpload}
+        />
 
         {/* Result & Template Editor */}
         {state === 'result' && (
@@ -451,6 +537,7 @@ export function PhotoboothPage() {
               onDeletePhoto={handleDeleteSingle}
               onReorderPhotos={handleReorderPhotos}
               onAddPhoto={handleAddMissingPhoto}
+              onUploadPhoto={handleSlotUploadFromPhotoGrid}
             />
             <PhotoTemplate
               photos={photos}

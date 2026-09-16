@@ -169,7 +169,9 @@ export function TemplateCardMockup({ template, customPhotos }: TemplateCardMocku
       {/* ========================================================================= */}
       {/* 3. VINTAGE NEWSPAPER (The Vintage Chronicle / Koran Jadul)               */}
       {/* ========================================================================= */}
-      {layoutType === 'newspaper' && (
+      {/* 3. VINTAGE NEWSPAPER (The Vintage Chronicle / Koran Jadul)               */}
+      {/* ========================================================================= */}
+      {(layoutType === 'newspaper' || layoutType === 'newspaper-single') && (
         <div
           style={{ backgroundColor: theme.bg }}
           className="w-[180px] sm:w-[195px] h-[264px] rounded-xs p-2 shadow-md border-2 border-[#1C1917] flex flex-col justify-between font-serif text-[#1C1917] relative"
@@ -186,34 +188,53 @@ export function TemplateCardMockup({ template, customPhotos }: TemplateCardMocku
               VOL. XXIV • SPECIAL EDITION • {dateStr} • ARCHIVAL B&W
             </div>
             <div className="text-[6px] sm:text-[6.5px] font-black uppercase tracking-tight text-[#1C1917] truncate mt-0.5">
-              MOMENTS OF PURE JOY & SMILES RECORDED LIVE
+              {slots === 1 ? 'LANDMARK JOYFUL MOMENT CAPTURED LIVE' : 'MOMENTS OF PURE JOY & SMILES RECORDED LIVE'}
             </div>
           </div>
 
-          {/* 2 Monochrome Photos with Letterpress Borders & Captions */}
-          <div className="space-y-1 flex-1 flex flex-col justify-between my-0.5 overflow-hidden">
-            {photos.slice(0, 2).map((src, idx) => (
-              <div
-                key={idx}
-                className="bg-[#0A0A0A] p-0.5 shadow-2xs flex-1 flex flex-col overflow-hidden"
-              >
-                <div className="flex-1 overflow-hidden relative">
-                  <img
-                    src={src}
-                    alt={`Archival ${idx + 1}`}
-                    className="w-full h-full object-cover object-center filter grayscale contrast-125 block"
-                    loading="lazy"
-                  />
-                  <span className="absolute bottom-0.5 right-0.5 text-[4.5px] font-mono bg-black/80 text-white px-0.5 rounded">
-                    B&W
-                  </span>
-                </div>
-                <div className="text-[4.5px] italic text-stone-300 mt-0.5 px-0.5 truncate">
-                  FIG. 0{idx + 1} — Live photobooth archival frame recorded in monochrome.
-                </div>
+          {/* Monochrome Photos: 1 big photo if slots === 1, otherwise 2 photos */}
+          {slots === 1 || layoutType === 'newspaper-single' ? (
+            <div className="flex-1 my-0.5 flex flex-col overflow-hidden bg-[#0A0A0A] p-0.5 shadow-2xs">
+              <div className="flex-1 overflow-hidden relative">
+                <img
+                  src={photos[0]}
+                  alt="Archival Front Page"
+                  className="w-full h-full object-cover object-center filter grayscale contrast-125 block"
+                  loading="lazy"
+                />
+                <span className="absolute bottom-0.5 right-0.5 text-[4.5px] font-mono bg-black/80 text-white px-0.5 rounded">
+                  FRONT PAGE
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="text-[4.5px] italic text-stone-300 mt-0.5 px-0.5 truncate">
+                FIG. 01 — Front page historic portrait preserved in monochrome.
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1 flex-1 flex flex-col justify-between my-0.5 overflow-hidden">
+              {photos.slice(0, 2).map((src, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#0A0A0A] p-0.5 shadow-2xs flex-1 flex flex-col overflow-hidden"
+                >
+                  <div className="flex-1 overflow-hidden relative">
+                    <img
+                      src={src}
+                      alt={`Archival ${idx + 1}`}
+                      className="w-full h-full object-cover object-center filter grayscale contrast-125 block"
+                      loading="lazy"
+                    />
+                    <span className="absolute bottom-0.5 right-0.5 text-[4.5px] font-mono bg-black/80 text-white px-0.5 rounded">
+                      B&W
+                    </span>
+                  </div>
+                  <div className="text-[4.5px] italic text-stone-300 mt-0.5 px-0.5 truncate">
+                    FIG. 0{idx + 1} — Live photobooth archival frame recorded in monochrome.
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Articles & Footer */}
           <div className="shrink-0 border-t border-[#1C1917] pt-0.5">
@@ -512,6 +533,121 @@ export function TemplateCardMockup({ template, customPhotos }: TemplateCardMocku
 
           <div className="text-center text-[6px] font-bold tracking-widest text-indigo-900 pt-0.5 border-t border-indigo-300 shrink-0">
             ★ FUTURE NOSTALGIA • {dateStr} ★
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9B. GEN Z COQUETTE (Pink Bows & Pearls)                                   */}
+      {/* ========================================================================= */}
+      {layoutType === 'genz-coquette' && (
+        <div className="w-[145px] sm:w-[160px] h-[264px] bg-[#FFF0F5] rounded-xl p-2 shadow-md border-2 border-[#FBCFE8] flex flex-col justify-between text-[#831843] relative">
+          <div className="text-center shrink-0 border-b border-[#FBCFE8] pb-0.5">
+            <div className="text-[7.5px] sm:text-[8px] font-bold tracking-wider">
+              🎀 COQUETTE • IZIAPHOTO 🎀
+            </div>
+            <div className="text-[5px] italic text-rose-500 font-serif">
+              sweetest moments with bestie ♡
+            </div>
+          </div>
+
+          <div className="space-y-1 flex-1 flex flex-col justify-between my-0.5 overflow-hidden">
+            {photos.slice(0, 4).map((src, idx) => (
+              <div
+                key={idx}
+                className="flex-1 rounded-sm overflow-hidden border border-pink-200 bg-white relative shadow-2xs"
+              >
+                <img
+                  src={src}
+                  alt={`Coquette ${idx + 1}`}
+                  className="w-full h-full object-cover object-center block"
+                  loading="lazy"
+                />
+                <span className="absolute top-0.5 left-0.5 text-[6.5px]">🎀</span>
+                <span className="absolute bottom-0.5 right-0.5 text-[6px] text-pink-500">♡</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center text-[5.5px] font-serif italic text-pink-700 pt-0.5 border-t border-pink-200 shrink-0">
+            xoxo • forever love • {dateStr} 🎀
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9C. GEN Z Y2K DIGICAM (Cyber 2000s)                                       */}
+      {/* ========================================================================= */}
+      {layoutType === 'genz-y2k-digicam' && (
+        <div className="w-[145px] sm:w-[160px] h-[264px] bg-[#18181B] rounded-xl p-2 shadow-md border-2 border-sky-400 flex flex-col justify-between text-sky-400 relative">
+          <div className="flex justify-between items-center text-[5px] font-mono px-0.5 shrink-0 border-b border-sky-500/30 pb-0.5">
+            <span className="text-red-400 font-bold">● REC</span>
+            <span className="text-sky-200">DIGICAM 3.2MP</span>
+            <span>🔋 98%</span>
+          </div>
+
+          <div className="space-y-1 flex-1 flex flex-col justify-between my-0.5 overflow-hidden">
+            {photos.slice(0, 4).map((src, idx) => (
+              <div
+                key={idx}
+                className="flex-1 rounded-xs overflow-hidden border border-sky-500/40 bg-black relative"
+              >
+                <img
+                  src={src}
+                  alt={`Digicam ${idx + 1}`}
+                  className="w-full h-full object-cover object-center block"
+                  loading="lazy"
+                />
+                <span className="absolute bottom-0.5 right-1 text-[5px] font-mono font-bold text-amber-400 drop-shadow-xs">
+                  '{dateStr}
+                </span>
+                <span className="absolute top-0.5 left-0.5 text-[5px] text-sky-400">✦</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center text-[5.5px] font-mono font-bold text-sky-300 pt-0.5 border-t border-sky-500/30 shrink-0">
+            ★ CYBER DIGICAM • IZIAPHOTO ★
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9D. CUTE MOCHI NEKO (Cat Paws & Whiskers)                                 */}
+      {/* ========================================================================= */}
+      {layoutType === 'genz-neko' && (
+        <div className="w-[145px] sm:w-[160px] h-[264px] bg-[#FEF3C7] rounded-xl p-2 shadow-md border-2 border-orange-200 flex flex-col justify-between text-orange-950 relative">
+          <div className="text-center shrink-0 border-b border-orange-200/80 pb-0.5">
+            <div className="text-[7.5px] sm:text-[8px] font-bold text-orange-900 tracking-wider">
+              🐾 MOCHI NEKO • MEOW ~ ♡ 🐾
+            </div>
+            <div className="text-[5px] italic text-orange-700">
+              purr-fect memories together ✨
+            </div>
+          </div>
+
+          <div className="space-y-1 flex-1 flex flex-col justify-between my-0.5 overflow-hidden">
+            {photos.slice(0, 4).map((src, idx) => (
+              <div
+                key={idx}
+                className="flex-1 rounded-sm overflow-hidden border border-orange-200 bg-white relative shadow-2xs"
+              >
+                <img
+                  src={src}
+                  alt={`Neko ${idx + 1}`}
+                  className="w-full h-full object-cover object-center block"
+                  loading="lazy"
+                />
+                <span className="absolute top-0.5 left-0.5 text-[6.5px]">🐾</span>
+                <span className="absolute bottom-0.5 right-0.5 text-[6px]">
+                  {idx % 2 === 0 ? '🐟' : '🐱'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center text-[5.5px] font-serif italic text-orange-800 pt-0.5 border-t border-orange-200 shrink-0">
+            ฅ^•ﻌ•^ฅ cute paws forever • {dateStr}
           </div>
         </div>
       )}

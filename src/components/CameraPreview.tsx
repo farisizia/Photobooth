@@ -28,6 +28,7 @@ interface CameraPreviewProps {
   arCanvasRef?: React.RefObject<HTMLCanvasElement>;
   showFilterTray?: boolean;
   onToggleFilterTray?: () => void;
+  children?: React.ReactNode;
 }
 
 export function CameraPreview({
@@ -47,6 +48,7 @@ export function CameraPreview({
   onToggleLighting,
   showFilterTray,
   onToggleFilterTray,
+  children,
 }: CameraPreviewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -260,6 +262,9 @@ export function CameraPreview({
           </button>
         </div>
       )}
+
+      {/* Viewfinder Embedded Overlays (e.g. Countdown, Flash) */}
+      {children}
     </div>
   );
 }
