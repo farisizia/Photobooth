@@ -31,7 +31,7 @@ export class CameraService {
         facingMode: { ideal: facing },
         width: { ideal: 1920, min: 640 },
         height: { ideal: 1080, min: 480 },
-        frameRate: { ideal: 30 },
+        frameRate: { ideal: 60, max: 120 },
       },
     };
 

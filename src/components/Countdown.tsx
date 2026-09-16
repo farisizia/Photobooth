@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface CountdownProps {
   count: number | null; // 3, 2, 1, or 0 (flash)
   photoIndex: number; // 0, 1, 2, 3
@@ -5,7 +7,7 @@ interface CountdownProps {
   totalPhotos?: number;
 }
 
-export function Countdown({ count, photoIndex, isFlashing, totalPhotos = 4 }: CountdownProps) {
+export const Countdown = memo(function Countdown({ count, photoIndex, isFlashing, totalPhotos = 4 }: CountdownProps) {
   return (
     <>
       {/* Camera White Flash Overlay */}
@@ -60,4 +62,4 @@ export function Countdown({ count, photoIndex, isFlashing, totalPhotos = 4 }: Co
       )}
     </>
   );
-}
+});

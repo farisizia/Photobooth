@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
@@ -31,16 +31,26 @@ interface CustomBuilderModalProps {
 }
 
 const PRESET_COLORS = [
-  { label: 'Kertas Warm', hex: '#FAF8F5' },
-  { label: 'Putih Bersih', hex: '#FFFFFF' },
+  // 1. Hitam & Kontras Tajam
   { label: 'Charcoal Noir', hex: '#0F1015' },
-  { label: 'Pastel Pink', hex: '#FFF0F5' },
-  { label: 'Soft Lavender', hex: '#F5F3FF' },
+  { label: 'Hitam Pekat', hex: '#000000' },
+  // 2. Off-White & Vintage Clean
+  { label: 'Off-White Paper', hex: '#FAF8F5' },
+  { label: 'Putih Bersih', hex: '#FFFFFF' },
+  // 3. Pastel Estetik
+  { label: 'Pastel Pink', hex: '#FCE7F3' },
+  { label: 'Soft Lilac', hex: '#EDE9FE' },
+  { label: 'Sage Green', hex: '#D1FAE5' },
+  { label: 'Baby Sky Blue', hex: '#E0F2FE' },
   { label: 'Butter Cream', hex: '#FEF9C3' },
-  { label: 'Sage Mint', hex: '#ECFDF5' },
-  { label: 'Sky Soft', hex: '#F0F9FF' },
-  { label: 'Deep Crimson', hex: '#450A0A' },
+  { label: 'Soft Peach', hex: '#FFEDD5' },
+  // 4. Warna Bold & Mewah
+  { label: 'Deep Maroon', hex: '#450A0A' },
+  { label: 'Deep Emerald', hex: '#064E3B' },
   { label: 'Midnight Navy', hex: '#0F172A' },
+  { label: 'Cokelat Espresso', hex: '#3E2723' },
+  { label: 'Cokelat Moka', hex: '#451A03' },
+  { label: 'Midnight Plum', hex: '#3B0764' },
 ];
 
 const SAMPLE_PHOTOS = [
@@ -57,22 +67,49 @@ export function CustomBuilderModal({
 }: CustomBuilderModalProps) {
   const navigate = useNavigate();
   const [config, setConfig] = useState<CustomBuilderConfig>(DEFAULT_BUILDER_CONFIG);
+  const colorInputRef = useRef<HTMLInputElement>(null);
+
+  const triggerColorPicker = () => {
+    if (colorInputRef.current) {
+      if ('showPicker' in colorInputRef.current) {
+        try {
+          colorInputRef.current.showPicker();
+          return;
+        } catch {
+          // fallback
+        }
+      }
+      colorInputRef.current.click();
+    }
+  };
 
   if (!isOpen) return null;
 
-  const currentMeta = BASE_LAYOUTS[config.layoutBase] || BASE_LAYOUTS['strip-4'];
+  const currentMeta = useMemo(
+    () => BASE_LAYOUTS[config.layoutBase] || BASE_LAYOUTS['strip-4'],
+    [config.layoutBase]
+  );
   const isStrip = config.layoutBase.startsWith('strip-');
   const isPortrait4R = config.layoutBase === '4r-portrait-grid4';
   const isPolaroid = config.layoutBase === 'polaroid-1';
   const isLandscape4R = !isStrip && !isPortrait4R && !isPolaroid;
 
-  const nowDateStr = new Date().toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).toUpperCase();
+  const nowDateStr = useMemo(
+    () =>
+      new Date()
+        .toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+        .toUpperCase(),
+    []
+  );
 
-  const contrast = getContrastColors(config.bgColor, config.textColor);
+  const contrast = useMemo(
+    () => getContrastColors(config.bgColor, config.textColor),
+    [config.bgColor, config.textColor]
+  );
 
   const handleUpdate = <K extends keyof CustomBuilderConfig>(
     key: K,
@@ -125,19 +162,19 @@ export function CustomBuilderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/85 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-[#12131A] border border-white/15 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh] text-white my-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 sm:px-6 sm:py-4 border-b border-white/10 bg-white/5 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-gradient-to-r from-coral-500/20 to-rose-500/20 text-coral-400 border border-coral-500/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md animate-fade-in overflow-hidden">
+      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[92vh] max-w-5xl bg-[#12131A] border-0 sm:border border-white/15 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white">
+        {/* Header (Sticky top) */}
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-white/10 bg-[#161722] shrink-0 sticky top-0 z-20">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-gradient-to-r from-coral-500/20 to-rose-500/20 text-coral-400 border border-coral-500/30 shrink-0">
               <Sparkles className="w-5 h-5" />
             </span>
-            <div>
-              <h2 className="text-lg sm:text-xl font-display font-extrabold text-white">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-xl font-display font-extrabold text-white truncate">
                 Bikin Template Kustom Sendiri
               </h2>
-              <p className="text-xs text-gray-400">
+              <p className="text-[11px] sm:text-xs text-gray-400 truncate hidden sm:block">
                 Pilih layout dasar, motif bingkai, warna, teks, dan gaya font sesukamu
               </p>
             </div>
@@ -145,14 +182,15 @@ export function CustomBuilderModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Tutup"
+            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0 active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        {/* Body (Scrollable with overscroll containment) */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* LEFT: Live Mockup Preview (5 cols on desktop) */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center bg-black/40 rounded-2xl border border-white/10 p-3 sm:p-4 relative min-h-[300px] sm:min-h-[440px]">
             <div className="w-full flex items-center justify-between text-xs text-gray-400 mb-2 px-1">
@@ -174,28 +212,26 @@ export function CustomBuilderModal({
                 backgroundSize: config.motif === 'checkerboard' ? '12px 12px' : undefined,
                 padding: config.motif === 'checkerboard' ? '8px' : `${Math.max(5, Math.round(config.photoGap * 0.4))}px`,
               }}
-              className={`relative rounded-xl overflow-hidden shadow-2xl flex flex-col justify-between select-none transition-all duration-300 mx-auto ${
-                isLandscape4R
+              className={`relative rounded-xl overflow-hidden shadow-2xl flex flex-col justify-between select-none transition-all duration-300 mx-auto gpu-layer will-change-transform ${isLandscape4R
                   ? 'w-full max-w-[330px] sm:max-w-[360px] aspect-[3/2]'
                   : isPortrait4R
-                  ? 'w-[230px] sm:w-[270px] aspect-[2/3]'
-                  : isStrip
-                  ? 'w-[155px] sm:w-[185px] aspect-[1/3]'
-                  : 'w-[220px] sm:w-[250px] aspect-[3/4]'
-              }`}
+                    ? 'w-[230px] sm:w-[270px] aspect-[2/3]'
+                    : isStrip
+                      ? 'w-[155px] sm:w-[185px] aspect-[1/3]'
+                      : 'w-[220px] sm:w-[250px] aspect-[3/4]'
+                }`}
             >
               {/* Inner wrapper for double-border or checkerboard nesting */}
               <div
                 style={{
                   backgroundColor: config.motif === 'checkerboard' ? config.bgColor : 'transparent',
                 }}
-                className={`w-full h-full flex flex-col justify-between relative p-1 sm:p-1.5 ${
-                  config.motif === 'double-border'
+                className={`w-full h-full flex flex-col justify-between relative p-1 sm:p-1.5 ${config.motif === 'double-border'
                     ? contrast.isLight
                       ? 'border-2 border-double border-slate-900/40'
                       : 'border-2 border-double border-white/40'
                     : ''
-                }`}
+                  }`}
               >
                 {/* Header Title & Subtitle */}
                 <div className="text-center py-0.5 shrink-0 overflow-hidden px-1">
@@ -448,11 +484,10 @@ export function CustomBuilderModal({
                       key={layoutKey}
                       type="button"
                       onClick={() => handleUpdate('layoutBase', layoutKey)}
-                      className={`p-3 rounded-2xl border text-left transition-all relative ${
-                        isSelected
+                      className={`p-3 rounded-2xl border text-left transition-all relative ${isSelected
                           ? 'border-coral-500 bg-coral-500/20 shadow-md ring-1 ring-coral-400/50'
                           : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
-                      }`}
+                        }`}
                     >
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-coral-400/20 text-coral-300 font-bold">
@@ -476,40 +511,104 @@ export function CustomBuilderModal({
                 <span>2. Warna & Motif Frame</span>
               </label>
 
-              {/* Background Color Picker */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={config.bgColor}
-                  onChange={(e) => handleBgColorChange(e.target.value)}
-                  className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-2 border-white/20 p-0.5"
-                />
-                <div className="flex-1 space-y-1">
-                  <div className="text-[11px] text-gray-400">Warna Background Frame:</div>
-                  <input
-                    type="text"
-                    value={config.bgColor}
-                    onChange={(e) => handleBgColorChange(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-white/15 text-xs font-mono font-bold text-white uppercase"
-                  />
-                </div>
-              </div>
+              {/* Interactive Color Swatch + Native Color Picker */}
+              {(() => {
+                const isLightActive = isLightColor(config.bgColor);
+                return (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-4 p-3 rounded-xl bg-black/40 border border-white/10">
+                      {/* Kolom Kiri: Kotak Warna Preview + Label/Tombol di Bawahnya */}
+                      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                        {/* Kotak Warna Preview dengan Palette Icon */}
+                        <div
+                          onClick={triggerColorPicker}
+                          className="relative group cursor-pointer"
+                          title="Sentuh untuk Custom Warna"
+                        >
+                          <div
+                            style={{ backgroundColor: config.bgColor }}
+                            className="w-13 h-13 rounded-xl border-2 border-white/40 shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-hover:border-rose-400 overflow-hidden"
+                          >
+                            <Palette
+                              className={`w-5 h-5 drop-shadow-xs transition-transform group-hover:rotate-12 ${isLightActive ? 'text-gray-900' : 'text-white'
+                                }`}
+                            />
+                          </div>
+                          {/* Native Color Picker (Fills whole swatch) */}
+                          <input
+                            ref={colorInputRef}
+                            type="color"
+                            value={config.bgColor.startsWith('#') ? config.bgColor : '#FFFFFF'}
+                            onChange={(e) => handleBgColorChange(e.target.value)}
+                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                            title="Sentuh untuk Custom Warna"
+                          />
+                        </div>
 
-              {/* Quick Palettes */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {PRESET_COLORS.map((c) => (
-                  <button
-                    key={c.hex}
-                    type="button"
-                    onClick={() => handleBgColorChange(c.hex)}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.label}
-                    className={`w-6 h-6 rounded-full border transition-transform ${
-                      config.bgColor === c.hex ? 'border-coral-400 scale-125 ring-2 ring-coral-400/50' : 'border-white/30 hover:scale-110'
-                    }`}
-                  />
-                ))}
-              </div>
+                        {/* Teks Bantuan di Bawah Kotak Warna */}
+                        <button
+                          type="button"
+                          onClick={triggerColorPicker}
+                          className="text-xs text-rose-400 font-medium hover:text-rose-300 transition-colors text-center cursor-pointer active:scale-95 leading-tight"
+                        >
+                          Sentuh untuk Custom Warna
+                        </button>
+                      </div>
+
+                      {/* Kolom Kanan: Label 'Kode Hex:' dan Input Bersih */}
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-xs font-bold text-gray-300 block">
+                          Kode Hex:
+                        </label>
+                        <input
+                          type="text"
+                          value={config.bgColor}
+                          onChange={(e) => handleBgColorChange(e.target.value)}
+                          placeholder="#FEF9C3"
+                          maxLength={9}
+                          className="w-full px-3.5 py-2.5 rounded-lg bg-black/60 border border-white/15 text-xs font-mono font-bold text-white uppercase focus:outline-hidden focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-gray-600"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick Preset Swatches with Highlight & Thick Checkmark */}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-gray-300">Palet Warna Cepat:</span>
+                        <span className="text-gray-400 text-[10px]">Hitam, Off-White, Pastel & Bold</span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 p-2 rounded-xl bg-black/25 border border-white/5">
+                        {PRESET_COLORS.map((c) => {
+                          const isSelected = config.bgColor.toLowerCase() === c.hex.toLowerCase();
+                          const isLight = isLightColor(c.hex);
+
+                          return (
+                            <button
+                              key={c.hex}
+                              type="button"
+                              onClick={() => handleBgColorChange(c.hex)}
+                              style={{ backgroundColor: c.hex }}
+                              title={`${c.label} (${c.hex})`}
+                              className={`relative w-8 h-8 rounded-full transition-all active:scale-90 flex items-center justify-center shadow-xs ${isSelected
+                                  ? 'border-2 border-white ring-4 ring-coral-500 scale-110 shadow-coral-500/40 z-10'
+                                  : 'border border-white/25 hover:scale-105 hover:border-white/60'
+                                }`}
+                            >
+                              {isSelected && (
+                                <Check
+                                  className={`w-4 h-4 stroke-[3.5] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] ${isLight ? 'text-gray-950' : 'text-white'
+                                    }`}
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Motif Frame (Polos, Checkerboard catur, Double-border) */}
               <div className="pt-2 border-t border-white/10">
@@ -528,11 +627,10 @@ export function CustomBuilderModal({
                         key={m.id}
                         type="button"
                         onClick={() => handleUpdate('motif', m.id as FrameMotif)}
-                        className={`p-2 rounded-xl border text-center transition-all ${
-                          isSelected
+                        className={`p-2 rounded-xl border text-center transition-all ${isSelected
                             ? 'border-coral-500 bg-coral-500/20 text-white font-bold'
                             : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
-                        }`}
+                          }`}
                       >
                         <div className="text-xs font-bold">{m.label}</div>
                         <div className="text-[9px] text-gray-400">{m.desc}</div>
@@ -614,11 +712,10 @@ export function CustomBuilderModal({
                         key={f.id}
                         type="button"
                         onClick={() => handleUpdate('fontStyle', f.id as FontStyleOption)}
-                        className={`p-2 rounded-xl border text-xs text-center transition-all ${
-                          config.fontStyle === f.id
+                        className={`p-2 rounded-xl border text-xs text-center transition-all ${config.fontStyle === f.id
                             ? 'border-coral-500 bg-coral-500/20 text-white font-bold'
                             : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
-                        }`}
+                          }`}
                       >
                         {f.label}
                       </button>
@@ -633,11 +730,10 @@ export function CustomBuilderModal({
                     <button
                       type="button"
                       onClick={() => handleUpdate('textColor', '#111111')}
-                      className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        config.textColor === '#111111'
+                      className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${config.textColor === '#111111'
                           ? 'border-coral-500 bg-coral-500/20 text-white'
                           : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
-                      }`}
+                        }`}
                     >
                       <span className="w-3 h-3 rounded-full bg-black border border-white/40 inline-block" />
                       <span>Hitam</span>
@@ -646,11 +742,10 @@ export function CustomBuilderModal({
                     <button
                       type="button"
                       onClick={() => handleUpdate('textColor', '#FFFFFF')}
-                      className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        config.textColor === '#FFFFFF'
+                      className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${config.textColor === '#FFFFFF'
                           ? 'border-coral-500 bg-coral-500/20 text-white'
                           : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
-                      }`}
+                        }`}
                     >
                       <span className="w-3 h-3 rounded-full bg-white border border-black/40 inline-block" />
                       <span>Putih</span>
@@ -706,22 +801,22 @@ export function CustomBuilderModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="px-6 py-3.5 border-t border-white/10 bg-white/5 flex items-center justify-end gap-3 shrink-0">
+        {/* Footer Actions - ALWAYS visible on mobile & desktop (Sticky Bottom & Safe Area Aware) */}
+        <div className="sticky bottom-0 z-30 shrink-0 bg-[#14151F] border-t border-white/15 px-4 py-3 sm:px-6 sm:py-3.5 pb-safe flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors shrink-0 active:scale-95"
           >
             Batal
           </button>
           <button
             type="button"
             onClick={handleSaveAndUse}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-coral-500/30 transition-all active:scale-95"
+            className="flex-1 sm:flex-initial px-4 sm:px-7 py-3 rounded-xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg shadow-coral-500/30 transition-all active:scale-95"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Gunakan & Mulai Foto ({currentMeta.slots} Foto)</span>
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span className="truncate">Gunakan & Mulai Foto ({currentMeta.slots} Foto)</span>
           </button>
         </div>
       </div>

@@ -71,8 +71,27 @@ export function PhotoTemplate({
   const [isGeneratingStory, setIsGeneratingStory] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
   const [canvasDataUrl, setCanvasDataUrl] = useState<string | null>(null);
+  const [doubleStrip4R, setDoubleStrip4R] = useState(true);
   const activeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isStripLayout =
+    template.id.includes('strip') ||
+    template.layoutType === 'korean-4cut' ||
+    template.layoutType === 'music-player' ||
+    template.layoutType === 'receipt' ||
+    template.layoutType === 'cinema-ticket' ||
+    template.layoutType === 'film-sprocket' ||
+    template.layoutType === 'y2k-chrome' ||
+    template.layoutType === 'genz-coquette' ||
+    template.layoutType === 'genz-y2k-digicam' ||
+    template.layoutType === 'genz-neko' ||
+    template.layoutType === 'polaroid-dual' ||
+    (activeCanvasRef.current ? activeCanvasRef.current.height / activeCanvasRef.current.width >= 1.7 : false);
+
+  const isLandscapeLayout =
+    template.layoutType.includes('landscape') ||
+    (activeCanvasRef.current ? activeCanvasRef.current.width > activeCanvasRef.current.height : false);
 
   const activeFilter = externalFilter || localFilter;
   const activeOverlay = externalOverlay || localOverlay;
@@ -106,6 +125,15 @@ export function PhotoTemplate({
     if (externalSetOverlay) externalSetOverlay(DEFAULT_OVERLAY);
   };
 
+  // Clean up Object URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (canvasDataUrl && canvasDataUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(canvasDataUrl);
+      }
+    };
+  }, [canvasDataUrl]);
+
   // Re-generate canvas whenever photos, template, customBgColor, customTextColor, fontStyle, customTexts, motif, cornerRadius, photoGap, activeFilter, or activeOverlay changes
   useEffect(() => {
     let isCurrent = true;
@@ -116,6 +144,7 @@ export function PhotoTemplate({
 
     setIsGenerating(true);
 
+    // Fast 40ms debounce enabled by in-memory image bitmap caching
     debounceTimerRef.current = setTimeout(() => {
       renderPhotoboothCanvas(photos, template, undefined, {
         filter: activeFilter.cssFilter,
@@ -131,14 +160,28 @@ export function PhotoTemplate({
         .then((canvas) => {
           if (!isCurrent) return;
           activeCanvasRef.current = canvas;
-          setCanvasDataUrl(canvas.toDataURL('image/png'));
-          setIsGenerating(false);
+
+          // Asynchronous off-thread blob generation (0 main-thread string allocation)
+          canvas.toBlob(
+            (blob) => {
+              if (!isCurrent || !blob) return;
+              const newUrl = URL.createObjectURL(blob);
+              setCanvasDataUrl((prev) => {
+                if (prev && prev.startsWith('blob:')) {
+                  URL.revokeObjectURL(prev);
+                }
+                return newUrl;
+              });
+              setIsGenerating(false);
+            },
+            'image/png'
+          );
         })
         .catch((err) => {
           console.error('[PhotoTemplate] Render error:', err);
           setIsGenerating(false);
         });
-    }, 120);
+    }, 40);
 
     return () => {
       isCurrent = false;
@@ -185,7 +228,12 @@ export function PhotoTemplate({
 
   const handlePrint = () => {
     if (activeCanvasRef.current) {
-      printPhotoboothCanvas(activeCanvasRef.current, `IziaPhoto - ${template.name}`);
+      printPhotoboothCanvas(activeCanvasRef.current, {
+        title: `IziaPhoto - ${template.name}`,
+        isStrip: isStripLayout,
+        isLandscape: isLandscapeLayout,
+        doubleStrip4R: isStripLayout ? doubleStrip4R : false,
+      });
     }
   };
 
@@ -253,79 +301,117 @@ export function PhotoTemplate({
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2.5">
-            {/* Primary Download Button */}
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={!canvasDataUrl || isGenerating}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-xl shadow-coral-500/30 transition-all active:scale-95 disabled:opacity-50"
-            >
-              <Download className="w-5 h-5 text-white stroke-[2.5]" />
-              <span>Download Photo (High-Res PNG)</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              {/* Primary Download Button */}
+              <button
+                type="button"
+                onClick={handleDownload}
+                disabled={!canvasDataUrl || isGenerating}
+                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-coral-500 via-rose-500 to-coral-600 hover:opacity-95 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-xl shadow-coral-500/30 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Download className="w-5 h-5 text-white stroke-[2.5]" />
+                <span>Download Photo (High-Res PNG)</span>
+              </button>
 
-            {/* Instagram Story 9:16 Special Button (Anti-Terpotong) */}
-            <button
-              type="button"
-              onClick={handleDownloadStory}
-              disabled={!canvasDataUrl || isGenerating || isGeneratingStory}
-              className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white font-bold text-sm flex items-center justify-between shadow-lg shadow-pink-500/20 transition-all active:scale-95 disabled:opacity-50 border border-white/20"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Unduh Format IG Story (9:16)</span>
+              {/* Print Feature Card (Responsive & Touch-Friendly) */}
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-cyan-950/40 border border-cyan-500/35 flex flex-col gap-2.5 shadow-lg">
+                {/* Checklist / Toggle 2in1 for Strip Layouts */}
+                {isStripLayout && (
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/15 border border-cyan-500/20 cursor-pointer transition-all select-none">
+                    <input
+                      type="checkbox"
+                      checked={doubleStrip4R}
+                      onChange={(e) => setDoubleStrip4R(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded-md accent-cyan-400 cursor-pointer flex-shrink-0"
+                    />
+                    <div className="flex-1 text-left">
+                      <div className="text-xs font-bold text-cyan-200 flex items-center gap-1.5 flex-wrap">
+                        <span>Cetak Dobel Strip di Kertas 4R (2in1)</span>
+                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-400/20 text-cyan-300 font-mono">
+                          Rekomendasi ✂️
+                        </span>
+                      </div>
+                      <div className="text-[10.5px] text-gray-300 mt-0.5 leading-tight">
+                        {doubleStrip4R
+                          ? 'Otomatis digandakan 2 strip berdampingan di kertas 4R (10x15cm) siap potong.'
+                          : 'Cetak 1 strip tunggal di kertas strip khusus (5x15cm / 2x6 inci).'}
+                      </div>
+                    </div>
+                  </label>
+                )}
+
+                {/* Main Print Button */}
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  disabled={!canvasDataUrl || isGenerating}
+                  className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:opacity-95 text-white font-extrabold text-sm sm:text-base flex items-center justify-between shadow-lg shadow-cyan-500/25 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Printer className="w-5 h-5 text-white stroke-[2.5]" />
+                    <span>Cetak / Print Foto</span>
+                  </div>
+                  <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/20 text-white font-bold">
+                    {isStripLayout
+                      ? doubleStrip4R
+                        ? 'Kertas 4R (2in1) ✂️'
+                        : 'Kertas Strip 2x6"'
+                      : isLandscapeLayout
+                      ? 'Kertas 4R Landscape'
+                      : 'Kertas 4R Portrait'}
+                  </span>
+                </button>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-mono uppercase tracking-wider">
-                {isGeneratingStory ? 'Menyiapkan...' : 'Anti-Terpotong ✨'}
-              </span>
-            </button>
 
-            {/* Row 2: Print & Share Buttons */}
-            <div className="grid grid-cols-2 gap-2.5">
+              {/* Instagram Story 9:16 Special Button (Anti-Terpotong) */}
               <button
                 type="button"
-                onClick={handlePrint}
-                disabled={!canvasDataUrl || isGenerating}
-                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 disabled:opacity-50"
+                onClick={handleDownloadStory}
+                disabled={!canvasDataUrl || isGenerating || isGeneratingStory}
+                className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white font-bold text-sm flex items-center justify-between shadow-lg shadow-pink-500/20 transition-all active:scale-95 disabled:opacity-50 border border-white/20"
               >
-                <Printer className="w-4 h-4 text-cyan-300 stroke-[2.2]" />
-                <span>Cetak / Print</span>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Unduh Format IG Story (9:16)</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-mono uppercase tracking-wider">
+                  {isGeneratingStory ? 'Menyiapkan...' : 'Anti-Terpotong ✨'}
+                </span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleShare}
-                disabled={!canvasDataUrl || isGenerating}
-                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 disabled:opacity-50"
-              >
-                <Share2 className="w-4 h-4 text-emerald-300 stroke-[2.2]" />
-                <span>Bagikan / Share</span>
-              </button>
-            </div>
+              {/* Row 2: Share & Retake Buttons */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  disabled={!canvasDataUrl || isGenerating}
+                  className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 disabled:opacity-50 cursor-pointer"
+                >
+                  <Share2 className="w-4 h-4 text-emerald-300 stroke-[2.2]" />
+                  <span>Bagikan / Share</span>
+                </button>
 
-            {/* Row 3: Retake & Change Template */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={onRetake}
-                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15"
-              >
-                <RotateCcw className="w-4 h-4 text-gray-300 stroke-[2.2]" />
-                <span>Foto Ulang</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={onRetake}
+                  className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-gray-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4 text-gray-300 stroke-[2.2]" />
+                  <span>Foto Ulang</span>
+                </button>
+              </div>
 
+              {/* Row 3: Change Template */}
               <Link
                 to="/templates"
-                className="py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-coral-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 text-center"
+                className="w-full py-3 px-4 rounded-2xl glass-pill hover:bg-white/10 text-coral-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 border border-white/15 text-center"
               >
                 <LayoutTemplate className="w-4 h-4 text-coral-300 stroke-[2.2]" />
-                <span>Ganti Template</span>
+                <span>Ganti Template Frame</span>
               </Link>
             </div>
           </div>
-        </div>
 
         {/* RIGHT COLUMN: Side Editor Panel (5 cols on desktop) */}
         <div className="lg:col-span-5">

@@ -15,6 +15,7 @@ import {
 import { CameraFilter, DEFAULT_FILTER } from '../utils/filters';
 import { OverlayItem, DEFAULT_OVERLAY } from '../utils/overlays';
 import { FilterOverlayTray } from '../components/FilterOverlayTray';
+import { optimizeImageFile } from '../utils/imageOptimizer';
 
 type PhotoboothState = 'camera-request' | 'ready' | 'capturing' | 'result' | 'error';
 
@@ -81,30 +82,22 @@ export function PhotoboothPage() {
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
   const [showFilterTray, setShowFilterTray] = useState(false);
+  const [isProcessingGallery, setIsProcessingGallery] = useState(false);
 
   // Video container reference for taking snapshots
   const containerRef = useRef<HTMLDivElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Helper to read File into high-quality dataURL
-  const readFileAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
 
   // Upload handler for full session or single retake from camera screen
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    setIsProcessingGallery(true);
     try {
       if (retakeTargetIndex !== null) {
-        // Single slot replacement
-        const dataUrl = await readFileAsDataUrl(files[0]);
+        // Single slot replacement with optimized compression
+        const dataUrl = await optimizeImageFile(files[0]);
         setPhotos((prev) => {
           const updated = [...prev];
           if (retakeTargetIndex < updated.length) {
@@ -117,25 +110,29 @@ export function PhotoboothPage() {
         });
         setRetakeTargetIndex(null);
         setState('result');
+        CameraService.stopCamera();
       } else {
-        // Multi-photo upload for full session
-        const fileList = Array.from(files).slice(0, totalShots);
-        const dataUrls = await Promise.all(fileList.map(readFileAsDataUrl));
+        // Multi-photo upload for full session (preserve up to max slots or all uploaded files)
+        const fileList = Array.from(files).slice(0, Math.max(totalShots, 8));
+        const dataUrls = await Promise.all(fileList.map((f) => optimizeImageFile(f)));
         setPhotos(dataUrls);
         saveCapturedPhotos(dataUrls);
         setState('result');
+        CameraService.stopCamera();
       }
     } catch (err) {
-      console.error('[Photobooth] Failed to read gallery files:', err);
+      console.error('[Photobooth] Failed to process gallery files:', err);
     } finally {
+      setIsProcessingGallery(false);
       if (e.target) e.target.value = '';
     }
   };
 
   // Upload handler for individual slots from PhotoGrid
   const handleSlotUploadFromPhotoGrid = async (file: File, targetIndex: number) => {
+    setIsProcessingGallery(true);
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await optimizeImageFile(file);
       setPhotos((prev) => {
         const updated = [...prev];
         if (targetIndex < updated.length) {
@@ -147,7 +144,9 @@ export function PhotoboothPage() {
         return updated;
       });
     } catch (err) {
-      console.error('[Photobooth] Failed to read slot file:', err);
+      console.error('[Photobooth] Failed to process slot file:', err);
+    } finally {
+      setIsProcessingGallery(false);
     }
   };
 
@@ -176,6 +175,32 @@ export function PhotoboothPage() {
       CameraService.stopCamera();
     };
   }, [initCamera]);
+
+  // Synchronize state and photos when templateId changes (e.g. changing templates from /templates)
+  useEffect(() => {
+    const currentStored = getCapturedPhotos();
+    if (currentStored.length > 0) {
+      setPhotos((prev) => (prev.length > 0 ? prev : currentStored));
+      setState('result');
+      CameraService.stopCamera();
+    }
+  }, [templateId]);
+
+  // Listen for background restoration from IndexedDB (e.g. after refresh)
+  useEffect(() => {
+    const handleStorageRestore = (e: Event) => {
+      const customEvt = e as CustomEvent<string[]>;
+      if (customEvt.detail && customEvt.detail.length > 0) {
+        setPhotos(customEvt.detail);
+        setState('result');
+        CameraService.stopCamera();
+      }
+    };
+    window.addEventListener('iziaphoto:photos-restored', handleStorageRestore);
+    return () => {
+      window.removeEventListener('iziaphoto:photos-restored', handleStorageRestore);
+    };
+  }, []);
 
   // Switch between front and rear cameras
   const handleSwitchCamera = async () => {
@@ -308,6 +333,10 @@ export function PhotoboothPage() {
     const updated = photos.filter((_, i) => i !== index);
     setPhotos(updated);
     saveCapturedPhotos(updated);
+    if (updated.length === 0) {
+      setState('ready');
+      initCamera(facing);
+    }
   };
 
   // Reorder photos (drag & drop or arrows)
@@ -329,6 +358,7 @@ export function PhotoboothPage() {
   const handleCancelRetake = () => {
     setRetakeTargetIndex(null);
     setState('result');
+    CameraService.stopCamera();
   };
 
   // Reset full session to live camera mode
@@ -548,6 +578,20 @@ export function PhotoboothPage() {
               selectedOverlay={selectedOverlay}
               onSelectOverlay={setSelectedOverlay}
             />
+          </div>
+        )}
+        {/* Processing Gallery Photos Modal Overlay */}
+        {isProcessingGallery && (
+          <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in p-4">
+            <div className="glass-panel px-7 py-6 rounded-3xl border border-white/20 flex flex-col items-center gap-3.5 shadow-2xl max-w-xs text-center">
+              <div className="w-10 h-10 border-4 border-coral-500/30 border-t-coral-500 rounded-full animate-spin" />
+              <div>
+                <h4 className="text-sm font-bold text-white">Memproses Foto Galeri</h4>
+                <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                  Mengoptimalkan foto untuk frame & cetak tajam...
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </main>

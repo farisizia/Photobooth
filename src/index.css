@@ -57,6 +57,28 @@
 }
 
 /* ==========================================================================
+   HIGH REFRESH-RATE (120 FPS / PROMOTION) & GPU COMPOSITOR OPTIMIZATIONS
+   ========================================================================== */
+.gpu-layer {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Off-screen rendering optimization: Skips layout/paint of off-screen sections until near viewport */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 650px;
+}
+
+/* Layout containment to prevent layout cascades */
+.contain-paint {
+  contain: paint;
+}
+
+/* ==========================================================================
    RESPONSIVE PHOTOBOOTH (TABLET & DESKTOP ENLARGEMENT ONLY)
    DEFAULT CSS = Tampilan Mobile Lama (3:4 portrait, max-w-md 448px)
    ========================================================================== */

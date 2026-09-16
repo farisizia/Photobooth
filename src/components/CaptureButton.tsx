@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface CaptureButtonProps {
   onStart: () => void;
   isCapturing: boolean;
@@ -10,7 +12,7 @@ interface CaptureButtonProps {
   onUploadGallery?: () => void;
 }
 
-export function CaptureButton({
+export const CaptureButton = memo(function CaptureButton({
   onStart,
   isCapturing,
   photoIndex,
@@ -116,4 +118,4 @@ export function CaptureButton({
       </p>
     </div>
   );
-}
+});

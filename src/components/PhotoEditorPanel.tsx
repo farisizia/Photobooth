@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Palette, Type, Wand2, RotateCcw, Sparkles } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Palette, Type, Wand2, RotateCcw, Sparkles, Check } from 'lucide-react';
 import { PhotoboothTemplate } from '../utils/templates';
 import { CameraFilter, CAMERA_FILTERS } from '../utils/filters';
 import { OverlayItem, OVERLAY_ITEMS } from '../utils/overlays';
 import { FontStyleOption, TextColorOption } from '../utils/canvas';
-import { FrameMotif } from '../utils/customBuilder';
+import { FrameMotif, isLightColor } from '../utils/customBuilder';
 
 interface PhotoEditorPanelProps {
   template: PhotoboothTemplate;
@@ -33,32 +33,30 @@ interface PhotoEditorPanelProps {
   onResetDefaults: () => void;
 }
 
-// Curated aesthetic presets
+// Curated aesthetic presets with high-contrast categories
 const PRESET_COLORS = [
   { label: 'Template Asli', hex: 'default' },
-  // Gen Z Sweet Pastels
-  { label: 'Strawberry Milk', hex: '#FCE7F3' },
-  { label: 'Coquette Pink', hex: '#FFF0F5' },
-  { label: 'Butter Cream', hex: '#FEF9C3' },
-  { label: 'Matcha Milk', hex: '#D1FAE5' },
-  { label: 'Baby Sky Blue', hex: '#E0F2FE' },
-  { label: 'Lavender Haze', hex: '#EDE9FE' },
-  { label: 'Peach Fuzz', hex: '#FFEDD5' },
-  { label: 'Mint Breeze', hex: '#CCFBF1' },
-  // Clean & Earthy Vintage
+  // 1. Hitam & Kontras Tajam
+  { label: 'Charcoal Noir', hex: '#0F1015' },
+  { label: 'Hitam Pekat', hex: '#000000' },
+  // 2. Off-White & Vintage Clean
+  { label: 'Off-White Paper', hex: '#FAF8F5' },
   { label: 'Putih Bersih', hex: '#FFFFFF' },
   { label: 'Koran Antik', hex: '#F4EFEB' },
-  { label: 'Warm Cream', hex: '#FAF6EF' },
-  { label: 'Mocha Taupe', hex: '#E7E5E4' },
-  // Dark Aesthetic & Y2K Bold
-  { label: 'Charcoal Noir', hex: '#0F1015' },
-  { label: 'Cyber Silver', hex: '#E2E8F0' },
-  { label: 'Cherry Red', hex: '#BE123C' },
+  // 3. Pastel Estetik
+  { label: 'Pastel Pink', hex: '#FCE7F3' },
+  { label: 'Soft Lilac', hex: '#EDE9FE' },
+  { label: 'Sage Green', hex: '#D1FAE5' },
+  { label: 'Baby Sky Blue', hex: '#E0F2FE' },
+  { label: 'Butter Cream', hex: '#FEF9C3' },
+  { label: 'Soft Peach', hex: '#FFEDD5' },
+  // 4. Warna Bold & Mewah
+  { label: 'Deep Maroon', hex: '#450A0A' },
+  { label: 'Deep Emerald', hex: '#064E3B' },
+  { label: 'Midnight Navy', hex: '#0F172A' },
+  { label: 'Cokelat Espresso', hex: '#3E2723' },
+  { label: 'Cokelat Moka', hex: '#451A03' },
   { label: 'Midnight Plum', hex: '#3B0764' },
-  { label: 'Indie Navy', hex: '#0F172A' },
-  { label: 'Forest Green', hex: '#064E3B' },
-  { label: 'Deep Crimson', hex: '#450A0A' },
-  { label: 'Neon Cyber Cyan', hex: '#083344' },
 ];
 
 const FONT_OPTIONS: { id: FontStyleOption; label: string; preview: string; sub: string }[] = [
@@ -92,6 +90,21 @@ export function PhotoEditorPanel({
   onResetDefaults,
 }: PhotoEditorPanelProps) {
   const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects'>('text');
+  const colorInputRef = useRef<HTMLInputElement>(null);
+
+  const triggerColorPicker = () => {
+    if (colorInputRef.current) {
+      if ('showPicker' in colorInputRef.current) {
+        try {
+          colorInputRef.current.showPicker();
+          return;
+        } catch {
+          // Fallback to click
+        }
+      }
+      colorInputRef.current.click();
+    }
+  };
 
   // Determine placeholder hints based on template layout
   const getHeaderPlaceholder = () => {
@@ -315,65 +328,125 @@ export function PhotoEditorPanel({
       {activeTab === 'style' && (
         <div className="space-y-4 animate-fade-in">
           {/* Warna Background Frame */}
-          <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-2.5">
-            <label className="text-xs font-bold text-gray-200 uppercase tracking-wider block">
-              1. Warna Background Frame
-            </label>
+          {(() => {
+            const activeColor = customBgColor === 'default' ? template.theme.bg : customBgColor;
+            const isLightActive = isLightColor(activeColor);
 
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  type="color"
-                  value={customBgColor === 'default' ? template.theme.bg : customBgColor}
-                  onChange={(e) => onBgColorChange(e.target.value)}
-                  className="w-11 h-11 rounded-xl cursor-pointer bg-transparent border-2 border-white/20 p-0.5 shadow-sm"
-                />
+            return (
+              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-200 uppercase tracking-wider">
+                    1. Warna Background Frame
+                  </label>
+                  <span className="text-[10px] text-coral-400 font-medium">Custom Color</span>
+                </div>
+
+                {/* Box Preview & Native Color Picker Trigger */}
+                <div className="flex items-center gap-4 p-3 rounded-xl bg-black/40 border border-white/10">
+                  {/* Kolom Kiri: Kotak Warna Preview + Label/Tombol di Bawahnya */}
+                  <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                    {/* Kotak Warna Preview dengan Palette Icon */}
+                    <div
+                      onClick={triggerColorPicker}
+                      className="relative group cursor-pointer"
+                      title="Sentuh untuk Custom Warna"
+                    >
+                      <div
+                        style={{ backgroundColor: activeColor }}
+                        className="w-13 h-13 rounded-xl border-2 border-white/40 shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-hover:border-rose-400 overflow-hidden"
+                      >
+                        <Palette
+                          className={`w-5 h-5 drop-shadow-sm transition-transform group-hover:rotate-12 ${
+                            isLightActive ? 'text-gray-900' : 'text-white'
+                          }`}
+                        />
+                      </div>
+                      {/* Native Color Picker (Fills whole swatch) */}
+                      <input
+                        ref={colorInputRef}
+                        type="color"
+                        value={activeColor.startsWith('#') ? activeColor : template.theme.bg}
+                        onChange={(e) => onBgColorChange(e.target.value)}
+                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                        title="Sentuh untuk Custom Warna"
+                      />
+                    </div>
+
+                    {/* Teks Bantuan di Bawah Kotak Warna */}
+                    <button
+                      type="button"
+                      onClick={triggerColorPicker}
+                      className="text-xs text-rose-400 font-medium hover:text-rose-300 transition-colors text-center cursor-pointer active:scale-95 leading-tight"
+                    >
+                      Sentuh untuk Custom Warna
+                    </button>
+                  </div>
+
+                  {/* Kolom Kanan: Label 'Kode Hex:' dan Input Bersih */}
+                  <div className="flex-1 space-y-1.5">
+                    <label className="text-xs font-bold text-gray-300 block">
+                      Kode Hex:
+                    </label>
+                    <input
+                      type="text"
+                      value={activeColor}
+                      onChange={(e) => onBgColorChange(e.target.value)}
+                      placeholder="#FEF9C3"
+                      maxLength={9}
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-black/60 border border-white/15 text-xs font-mono font-bold text-white uppercase focus:outline-hidden focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-gray-600"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Preset Swatches with Highlight & Thick Checkmark */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-gray-300">Palet Warna Cepat:</span>
+                    <span className="text-gray-400 text-[10px]">Hitam, Off-White, Pastel & Bold</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 p-2 rounded-xl bg-black/25 border border-white/5">
+                    {PRESET_COLORS.map((pc) => {
+                      const colorVal = pc.hex === 'default' ? template.theme.bg : pc.hex;
+                      const isSelected =
+                        customBgColor === pc.hex ||
+                        (pc.hex === 'default' && customBgColor === template.theme.bg) ||
+                        customBgColor.toLowerCase() === colorVal.toLowerCase();
+
+                      const isLight = isLightColor(colorVal);
+
+                      return (
+                        <button
+                          key={pc.label}
+                          type="button"
+                          onClick={() => onBgColorChange(colorVal)}
+                          title={`${pc.label} (${colorVal})`}
+                          style={{ backgroundColor: colorVal }}
+                          className={`relative w-8 h-8 rounded-full transition-all active:scale-90 flex items-center justify-center shadow-sm ${
+                            isSelected
+                              ? 'border-2 border-white ring-4 ring-coral-500 scale-110 shadow-coral-500/40 z-10'
+                              : 'border border-white/25 hover:scale-105 hover:border-white/60'
+                          }`}
+                        >
+                          {isSelected ? (
+                            <Check
+                              className={`w-4 h-4 stroke-[3.5] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] ${
+                                isLight ? 'text-gray-950' : 'text-white'
+                              }`}
+                            />
+                          ) : pc.hex === 'default' ? (
+                            <span className={`text-[10px] font-black ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                              ★
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-
-              <div className="flex-1 space-y-1">
-                <div className="text-[11px] text-gray-400 font-medium">Hex Color:</div>
-                <input
-                  type="text"
-                  value={customBgColor === 'default' ? template.theme.bg : customBgColor}
-                  onChange={(e) => onBgColorChange(e.target.value)}
-                  placeholder="#FFFFFF"
-                  className="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-white/15 text-xs font-mono font-bold text-white uppercase focus:outline-hidden focus:border-coral-400"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Preset Swatches */}
-          <div className="space-y-1.5">
-            <div className="text-[11px] font-semibold text-gray-400">Palet Warna Cepat:</div>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_COLORS.map((pc) => {
-                const colorVal = pc.hex === 'default' ? template.theme.bg : pc.hex;
-                const isSelected =
-                  customBgColor === pc.hex ||
-                  (pc.hex === 'default' && customBgColor === template.theme.bg);
-
-                return (
-                  <button
-                    key={pc.label}
-                    type="button"
-                    onClick={() => onBgColorChange(colorVal)}
-                    title={`${pc.label} (${colorVal})`}
-                    style={{ backgroundColor: colorVal }}
-                    className={`w-7 h-7 rounded-full border-2 transition-all active:scale-90 flex items-center justify-center text-[10px] ${
-                      isSelected
-                        ? 'border-coral-500 ring-2 ring-coral-400/50 scale-110 shadow-md'
-                        : 'border-white/30 hover:scale-105'
-                    }`}
-                  >
-                    {pc.hex === 'default' && (
-                      <span className="text-[9px] drop-shadow-sm">★</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Motif Frame */}
           {onMotifChange && (

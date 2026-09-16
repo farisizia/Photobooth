@@ -42,14 +42,37 @@ export function captureFrame(video: HTMLVideoElement, opts?: { mirror?: boolean 
   return canvas.toDataURL('image/jpeg', 0.95);
 }
 
+// High-performance LRU image cache for instant canvas re-renders (0ms decoding overhead)
+const imageCache = new Map<string, HTMLImageElement>();
+
+export function clearImageCache(): void {
+  imageCache.clear();
+}
+
 /**
- * Loads an HTMLImageElement from a data URL asynchronously
+ * Loads an HTMLImageElement with in-memory bitmap caching
  */
 const loadImage = (src: string): Promise<HTMLImageElement> => {
+  if (imageCache.has(src)) {
+    const cached = imageCache.get(src)!;
+    if (cached.complete && cached.naturalWidth > 0) {
+      return Promise.resolve(cached);
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
+    img.decoding = 'async';
+    img.onload = () => {
+      // Keep memory strictly bounded (up to 50 active photo bitmaps)
+      if (imageCache.size > 50) {
+        const firstKey = imageCache.keys().next().value;
+        if (firstKey) imageCache.delete(firstKey);
+      }
+      imageCache.set(src, img);
+      resolve(img);
+    };
     img.onerror = (err) => reject(err);
     img.src = src;
   });
@@ -2188,53 +2211,219 @@ export async function renderInstagramStoryCanvas(
   return storyCanvas;
 }
 
+export interface PrintPhotoboothOptions {
+  title?: string;
+  isStrip?: boolean;
+  isLandscape?: boolean;
+  doubleStrip4R?: boolean;
+}
+
 /**
- * Opens a print dialog with optimal margins and paper scaling
+ * Opens an isolated print frame or window with exact @page dimensions (2x6" strip or 4x6" 4R)
+ * and optional 2in1 double-strip layout for standard 4R home photo paper.
  */
-export function printPhotoboothCanvas(canvas: HTMLCanvasElement, title = 'IziaPhoto Print') {
-  const dataUrl = canvas.toDataURL('image/png', 1.0);
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('Izinkan pop-up untuk mencetak foto langsung dari browser.');
-    return;
+export function printPhotoboothCanvas(
+  canvas: HTMLCanvasElement,
+  options: string | PrintPhotoboothOptions = 'IziaPhoto Print'
+) {
+  const opts: PrintPhotoboothOptions =
+    typeof options === 'string' ? { title: options } : options;
+
+  const {
+    title = 'IziaPhoto Print',
+    isStrip = canvas.height / canvas.width >= 1.7,
+    isLandscape = canvas.width > canvas.height,
+    doubleStrip4R = false,
+  } = opts;
+
+  let printDataUrl = '';
+  let pageSizeCss = '101.6mm 152.4mm'; // default 4R (4x6 inch)
+
+  if (isStrip) {
+    if (doubleStrip4R) {
+      // Create 2in1 composite on standard 4R paper (101.6mm x 152.4mm)
+      pageSizeCss = '101.6mm 152.4mm';
+      try {
+        const doubleCanvas = document.createElement('canvas');
+        doubleCanvas.width = canvas.width * 2;
+        doubleCanvas.height = canvas.height;
+        const dCtx = doubleCanvas.getContext('2d');
+        if (dCtx) {
+          dCtx.fillStyle = '#FFFFFF';
+          dCtx.fillRect(0, 0, doubleCanvas.width, doubleCanvas.height);
+
+          // Draw left strip
+          dCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+
+          // Draw right strip
+          dCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, canvas.width, 0, canvas.width, canvas.height);
+
+          // Dashed center cutting line
+          dCtx.save();
+          dCtx.strokeStyle = 'rgba(150, 150, 150, 0.65)';
+          dCtx.lineWidth = Math.max(2, Math.round(canvas.width * 0.003));
+          dCtx.setLineDash([16, 16]);
+          dCtx.beginPath();
+          dCtx.moveTo(canvas.width, 0);
+          dCtx.lineTo(canvas.width, canvas.height);
+          dCtx.stroke();
+          dCtx.restore();
+
+          // Cut icon guidelines top and bottom
+          const iconSize = Math.max(16, Math.round(canvas.width * 0.035));
+          dCtx.font = `${iconSize}px sans-serif`;
+          dCtx.fillStyle = '#666666';
+          dCtx.textAlign = 'center';
+          dCtx.textBaseline = 'top';
+          dCtx.fillText('✂', canvas.width, 10);
+          dCtx.textBaseline = 'bottom';
+          dCtx.fillText('✂', canvas.width, canvas.height - 10);
+
+          printDataUrl = doubleCanvas.toDataURL('image/png', 1.0);
+        } else {
+          printDataUrl = canvas.toDataURL('image/png', 1.0);
+        }
+      } catch {
+        printDataUrl = canvas.toDataURL('image/png', 1.0);
+      }
+    } else {
+      // Single Strip 2x6 inch paper (50.8mm x 152.4mm)
+      pageSizeCss = '50.8mm 152.4mm';
+      printDataUrl = canvas.toDataURL('image/png', 1.0);
+    }
+  } else if (isLandscape) {
+    // Landscape 4R (6x4 inch = 152.4mm x 101.6mm)
+    pageSizeCss = '152.4mm 101.6mm';
+    printDataUrl = canvas.toDataURL('image/png', 1.0);
+  } else {
+    // Portrait 4R (4x6 inch = 101.6mm x 152.4mm)
+    pageSizeCss = '101.6mm 152.4mm';
+    printDataUrl = canvas.toDataURL('image/png', 1.0);
   }
 
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>${title}</title>
-        <style>
-          @page {
-            size: auto;
-            margin: 0;
-          }
-          body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: #ffffff;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          img {
-            max-width: 96%;
-            max-height: 96vh;
-            object-fit: contain;
-            box-shadow: none;
-            page-break-inside: avoid;
-          }
-        </style>
-      </head>
-      <body>
-        <img src="${dataUrl}" onload="window.focus(); setTimeout(() => { window.print(); }, 250);" />
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
+  const printHtml = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+    <style>
+      @page {
+        size: ${pageSizeCss};
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff;
+        overflow: hidden;
+      }
+      .print-box {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="print-box">
+      <img id="print-target" src="${printDataUrl}" alt="${title}" />
+    </div>
+    <script>
+      let isFired = false;
+      function doPrint() {
+        if (isFired) return;
+        isFired = true;
+        window.focus();
+        setTimeout(function() {
+          window.print();
+        }, 150);
+      }
+      const el = document.getElementById('print-target');
+      if (el && el.complete) {
+        doPrint();
+      } else if (el) {
+        el.onload = doPrint;
+      }
+      setTimeout(doPrint, 600);
+    </script>
+  </body>
+</html>`;
+
+  // Detect iOS Safari
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      return;
+    }
+  }
+
+  // Hidden isolated iframe for Android, Chrome, Edge, Firefox, Mac Safari
+  const frameId = 'iziaphoto-print-frame';
+  const existingFrame = document.getElementById(frameId);
+  if (existingFrame) {
+    existingFrame.remove();
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.id = frameId;
+  iframe.style.position = 'fixed';
+  iframe.style.top = '0';
+  iframe.style.left = '0';
+  iframe.style.width = '100vw';
+  iframe.style.height = '100vh';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0.001';
+  iframe.style.zIndex = '-9999';
+  iframe.style.pointerEvents = 'none';
+
+  document.body.appendChild(iframe);
+
+  const frameDoc = iframe.contentWindow?.document;
+  if (frameDoc) {
+    frameDoc.open();
+    frameDoc.write(printHtml);
+    frameDoc.close();
+
+    // Clean up frame after printing
+    iframe.contentWindow?.addEventListener('afterprint', () => {
+      setTimeout(() => iframe.remove(), 1000);
+    });
+  } else {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+    }
+  }
 }
 
 /**

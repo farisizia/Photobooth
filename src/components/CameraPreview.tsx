@@ -87,16 +87,18 @@ export function CameraPreview({
         lightingBoost ? 'ring-4 ring-amber-300/40 shadow-[0_0_50px_rgba(251,191,36,0.22)]' : ''
       }`}
     >
-      {/* Live Video Feed with real-time CSS filter & lighting */}
+      {/* Live Video Feed with hardware-accelerated GPU layer & zero-jank mirroring */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted
-        style={{ filter: liveVideoFilter }}
-        className={`w-full h-full object-cover transition-[transform,filter] duration-200 ${
-          mirrored ? '-scale-x-100' : 'scale-x-100'
-        }`}
+        style={{
+          filter: liveVideoFilter,
+          transform: mirrored ? 'scaleX(-1) translateZ(0)' : 'scaleX(1) translateZ(0)',
+          willChange: 'transform',
+        }}
+        className="w-full h-full object-cover gpu-layer transition-transform duration-150"
       />
 
       {/* Static Full-Frame Graphic Overlay (Bunga / Bingkai / Stiker) */}

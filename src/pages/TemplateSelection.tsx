@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   TEMPLATES,
@@ -7,8 +7,11 @@ import {
 } from '../utils/templates';
 import { getCapturedPhotos, clearCapturedPhotos } from '../utils/storage';
 import { TemplateCardMockup } from '../components/TemplateCardMockup';
-import { CustomBuilderModal } from '../components/CustomBuilderModal';
 import { Sparkles, Plus } from 'lucide-react';
+
+const CustomBuilderModal = lazy(() =>
+  import('../components/CustomBuilderModal').then((m) => ({ default: m.CustomBuilderModal }))
+);
 
 export function TemplateSelectionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +25,23 @@ export function TemplateSelectionPage() {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+
+    // Refresh state from active storage cache
+    setSavedPhotos(getCapturedPhotos());
+
+    const handleSync = () => {
+      setSavedPhotos(getCapturedPhotos());
+    };
+
+    window.addEventListener('iziaphoto:photos-restored', handleSync);
+    window.addEventListener('iziaphoto:photos-updated', handleSync);
+    window.addEventListener('iziaphoto:photos-cleared', handleSync);
+
+    return () => {
+      window.removeEventListener('iziaphoto:photos-restored', handleSync);
+      window.removeEventListener('iziaphoto:photos-updated', handleSync);
+      window.removeEventListener('iziaphoto:photos-cleared', handleSync);
+    };
   }, []);
 
   useEffect(() => {
@@ -262,11 +282,15 @@ export function TemplateSelectionPage() {
         </div>
       </main>
 
-      {/* In-App Custom Template Builder Modal */}
-      <CustomBuilderModal
-        isOpen={isBuilderOpen}
-        onClose={() => setIsBuilderOpen(false)}
-      />
+      {/* In-App Custom Template Builder Modal (Lazy loaded) */}
+      {isBuilderOpen && (
+        <Suspense fallback={null}>
+          <CustomBuilderModal
+            isOpen={isBuilderOpen}
+            onClose={() => setIsBuilderOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

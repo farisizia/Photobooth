@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { PhotoboothTemplate } from '../constants/templatesData';
 import { getTemplateSamplePhotos } from '../constants/templateSamplePhotos';
 import { getContrastColors } from '../utils/customBuilder';
@@ -7,7 +8,7 @@ interface TemplateCardMockupProps {
   customPhotos?: string[];
 }
 
-export function TemplateCardMockup({ template, customPhotos }: TemplateCardMockupProps) {
+export const TemplateCardMockup = memo(function TemplateCardMockup({ template, customPhotos }: TemplateCardMockupProps) {
   const { layoutType, theme, slots, id } = template;
 
   // Use custom captured photos if provided, otherwise use curated varied sample photos
@@ -1328,4 +1329,4 @@ export function TemplateCardMockup({ template, customPhotos }: TemplateCardMocku
       )}
     </div>
   );
-}
+});
